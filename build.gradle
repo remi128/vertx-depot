@@ -32,8 +32,6 @@ dependencies {
     compile 'io.vertx:vertx-auth-service:3.0.0-SNAPSHOT'
     compile 'com.github.jknack:handlebars:1.3.0'
     compile 'io.vertx:vertx-codetrans:3.0.0-SNAPSHOT'
-    compile 'io.vertx:vertx-jdbc-service:3.0.0-SNAPSHOT'
-    compile 'org.xerial:sqlite-jdbc:3.7.2'
 }
 
 shadowJar {
