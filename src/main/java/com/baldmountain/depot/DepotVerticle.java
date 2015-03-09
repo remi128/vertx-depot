@@ -12,9 +12,9 @@ import io.vertx.ext.apex.Router;
 import io.vertx.ext.apex.handler.*;
 import io.vertx.ext.apex.sstore.LocalSessionStore;
 import io.vertx.ext.apex.templ.ThymeleafTemplateEngine;
-import io.vertx.ext.auth.AuthService;
-import io.vertx.ext.auth.shiro.ShiroAuthRealmType;
-import io.vertx.ext.auth.shiro.ShiroAuthService;
+// import io.vertx.ext.auth.AuthService;
+// import io.vertx.ext.auth.shiro.ShiroAuthRealmType;
+// import io.vertx.ext.auth.shiro.ShiroAuthService;
 import io.vertx.ext.mongo.MongoService;
 
 /**

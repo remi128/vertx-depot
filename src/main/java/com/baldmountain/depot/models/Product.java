@@ -38,19 +38,19 @@ public class Product extends BaseModel {
     public String getTitle() {
         return title;
     }
-    
+
     public String getDescription() {
         return description;
     }
-    
+
     public String getImageUrl() {
         return imageUrl;
     }
-    
+
     public BigDecimal getPrice() {
         return price;
     }
-    
+
     public void save(MongoService service, Handler<AsyncResult<String>> resultHandler) {
         JsonObject json = new JsonObject()
                 .put("title", title)
