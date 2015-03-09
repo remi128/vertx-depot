@@ -81,7 +81,7 @@ public class DepotVerticle extends AbstractVerticle {
 //                    .setStatusCode(302).end();
 //        });
 
-        router.get("/index.html").handler(context -> {
+        router.get("/products/*").handler(context -> {
             Product.all(mongoService, res -> {
                 if (res.succeeded()) {
                     context.put("products", res.result());

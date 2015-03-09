@@ -56,7 +56,7 @@ public class Product extends BaseModel {
                 .put("title", title)
                 .put("description", description)
                 .put("imageUrl", imageUrl)
-                .put("price", Double.toString(price.doubleValue()));
+                .put("price", price.doubleValue());
         setDates(json);
         if (id != null) {
             // update existing
