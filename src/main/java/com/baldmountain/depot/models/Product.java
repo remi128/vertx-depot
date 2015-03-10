@@ -61,7 +61,7 @@ public class Product extends BaseModel {
         if (id != null) {
             // update existing
             service.update("products",
-                    new JsonObject().put("id", id),
+                    new JsonObject().put("_id", id),
                     json, (Void) -> resultHandler.handle(new AsyncResult<String>() {
                             @Override
                             public String result() {
@@ -89,7 +89,7 @@ public class Product extends BaseModel {
     }
 
     public static void load(MongoService service, String id, Handler<AsyncResult<Product>> resultHandler) {
-        JsonObject query = new JsonObject().put("id", id);
+        JsonObject query = new JsonObject().put("_id", id);
         service.findOne("products", query, null, res -> {
             if (res.succeeded()) {
                 resultHandler.handle(new AsyncResult<Product>() {
@@ -190,6 +190,6 @@ public class Product extends BaseModel {
         });
     }
     public void delete(MongoService service, Handler<AsyncResult<Void>> resultHandler) {
-        service.remove("products", new JsonObject().put("id", id), resultHandler);
+        service.remove("products", new JsonObject().put("_id", id), resultHandler);
     }
 }

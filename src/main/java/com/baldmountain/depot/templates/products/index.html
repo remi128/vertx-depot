@@ -12,7 +12,7 @@
 <table>
     <tr th:each="product : ${context.get('products')}" th:class="${productStat.odd} ? 'list_line_even' : 'list_line_odd'">
         <td>
-            <img th:if="${product.imageUrl} != ''" th:href="@{${product.imageUrl}}" th:class="list_image" />
+            <img th:if="${product.imageUrl} != ''" th:src="${product.imageUrl}" th:class="list_image" />
         </td>
         <td class="list_description">
             <dl>
@@ -20,8 +20,15 @@
                 <dd th:utext="${product.description.substring(0.80)}"></dd>
             </dl>
         </td>
+        <td class="list_actions">
+            <a th:href="|/products/show/${product.id}|" th:text="Show"></a><br/>
+            <a th:href="|/products/edit/${product.id}|" th:text="Edit"></a><br/>
+            <a th:href="|/products/delete/${product.id}|" th:text="Destroy">method: delete, data: { confirm: 'Are you sure?' }</a>
+        </td>
     </tr>
 </table>
 <br />
+<a href="/products/new">New product</a>
+
 </body>
 </html>

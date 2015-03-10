@@ -22,7 +22,7 @@ class BaseModel {
     }
 
     BaseModel(JsonObject json) {
-        id = json.getString("id");
+        id = json.getString("_id");
         String s = json.getString("createdOn");
         if (s != null) {
             try {
@@ -49,4 +49,18 @@ class BaseModel {
         updatedOn = new Date();
         json.put("updatedOn", dateFormat.format(updatedOn));
     }
+
+    public String getId() {
+        return id;
+    }
+
+    public Date getCreatedOn() {
+        return createdOn;
+    }
+
+    public Date getUpdatedOn() {
+        return updatedOn;
+    }
+
+
 }
