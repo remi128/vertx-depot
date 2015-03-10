@@ -7,6 +7,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.MongoService;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,9 +23,9 @@ public class Product extends BaseModel {
         description = json.getString("description");
         imageUrl = json.getString("imageUrl");
         if (json.containsKey("price")) {
-            price = new BigDecimal(json.getDouble("price"));
+            price = new BigDecimal(json.getDouble("price")).setScale(2, RoundingMode.CEILING);
         } else {
-            price = BigDecimal.ZERO;
+            price = BigDecimal.ZERO.setScale(2, RoundingMode.CEILING);
         }
     }
 
