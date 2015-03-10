@@ -5,6 +5,8 @@
     <link rel="shortcut icon" href="/favicon.ico" />
     <link rel="stylesheet" type="text/css" href="/css/scaffolds.css" />
     <link rel="stylesheet" type="text/css" href="/css/products.css" />
+    <script type="text/javascript" src="/js/jquery-1.11.2.min.js"></script>
+    <script type="text/javascript" src="/js/jquery.restfulizer.js"></script>
 </head>
 <body th:class="products">
 <h1>Listing <span th:text="${context.get('products').size()}"></span> products</h1>
@@ -23,12 +25,15 @@
         <td class="list_actions">
             <a th:href="|/products/show/${product.id}|" th:text="Show"></a><br/>
             <a th:href="|/products/edit/${product.id}|" th:text="Edit"></a><br/>
-            <a th:href="|/products/delete/${product.id}|" th:text="Destroy">method: delete, data: { confirm: 'Are you sure?' }</a>
+            <a th:href="|/products/delete/${product.id}|" th:text="Destroy" data-method="DELETE" class="rest">method: delete, data: { confirm: 'Are you sure?' }</a>
         </td>
     </tr>
 </table>
 <br />
 <a href="/products/new">New product</a>
 
+<script type="text/javascript">
+    $(".rest").restfulizer();
+</script>
 </body>
 </html>

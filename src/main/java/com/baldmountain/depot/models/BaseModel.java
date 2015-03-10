@@ -9,6 +9,7 @@ import java.util.Date;
 
 /**
  * Created by gclements on 3/7/15.
+ *
  */
 class BaseModel {
     private static final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
