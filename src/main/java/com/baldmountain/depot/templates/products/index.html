@@ -1,11 +1,27 @@
-<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd">
+<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
 <head>
+    <title>Depot</title>
     <link rel="shortcut icon" href="/favicon.ico" />
     <link rel="stylesheet" type="text/css" href="/css/scaffolds.css" />
     <link rel="stylesheet" type="text/css" href="/css/products.css" />
 </head>
-<body>
-    <div th:text="'Products: ' + ${context.get('products').size()}"></div>
+<body th:class="products">
+<h1>Listing <span th:text="${context.get('products').size()}"></span> products</h1>
+
+<table>
+    <tr th:each="product : ${context.get('products')}" th:class="${productStat.odd} ? 'list_line_even' : 'list_line_odd'">
+        <td>
+            <img th:if="${product.imageUrl} != ''" th:href="@{${product.imageUrl}}" th:class="list_image" />
+        </td>
+        <td class="list_description">
+            <dl>
+                <dt th:text="${product.title}"></dt>
+                <dd th:utext="${product.description.substring(0.80)}"></dd>
+            </dl>
+        </td>
+    </tr>
+</table>
+<br />
 </body>
 </html>
