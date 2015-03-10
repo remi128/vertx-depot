@@ -88,7 +88,7 @@ public class Product extends BaseModel {
         }
     }
 
-    public static void load(MongoService service, String id, Handler<AsyncResult<Product>> resultHandler) {
+    public static void find(MongoService service, String id, Handler<AsyncResult<Product>> resultHandler) {
         JsonObject query = new JsonObject().put("_id", id);
         service.findOne("products", query, null, res -> {
             if (res.succeeded()) {

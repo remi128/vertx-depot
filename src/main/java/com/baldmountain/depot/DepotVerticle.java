@@ -3,12 +3,13 @@ package com.baldmountain.depot;
 import com.baldmountain.depot.models.Product;
 import io.vertx.codetrans.annotations.CodeTranslate;
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.DeploymentOptions;
+//import io.vertx.core.DeploymentOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.impl.LoggerFactory;
 import io.vertx.example.util.Runner;
 import io.vertx.ext.apex.Router;
+import io.vertx.ext.apex.RoutingContext;
 import io.vertx.ext.apex.handler.*;
 import io.vertx.ext.apex.sstore.LocalSessionStore;
 import io.vertx.ext.apex.templ.ThymeleafTemplateEngine;
@@ -29,6 +30,18 @@ public class DepotVerticle extends AbstractVerticle {
 
     private static final Logger log = LoggerFactory.getLogger(DepotVerticle.class);
     private MongoService mongoService;
+
+    private void getProductAndShowNext(RoutingContext context) {
+        String productID = context.request().getParam("productid");
+        Product.find(mongoService, productID, res -> {
+            if (res.succeeded()) {
+                context.put("product", res.result());
+                context.next();
+            } else {
+                context.fail(res.cause());
+            }
+        });
+    }
 
     @CodeTranslate
     @Override
@@ -81,7 +94,15 @@ public class DepotVerticle extends AbstractVerticle {
 //                    .setStatusCode(302).end();
 //        });
 
-        router.get("/products/*").handler(context -> {
+        router.get("/products/edit/:productId").handler(context -> {
+            getProductAndShowNext(context);
+        });
+
+        router.get("/products/show/:productId").handler(context -> {
+            getProductAndShowNext(context);
+        });
+
+        router.get("/products/index.html").handler(context -> {
             Product.all(mongoService, res -> {
                 if (res.succeeded()) {
                     context.put("products", res.result());
@@ -92,7 +113,7 @@ public class DepotVerticle extends AbstractVerticle {
             });
         });
 
-        router.route("/products/*").handler(TemplateHandler.create(ThymeleafTemplateEngine.create().setMode("HTML5"), "templates/products", "text/html"));
+        router.route("/products/*").handler(new ProductsTemplateHandler(ThymeleafTemplateEngine.create().setMode("HTML5"), "templates/products", "text/html"));
 
 //        router.route("/").handler(context -> {
 //            Product.all(mongoService, result -> {
