@@ -102,7 +102,7 @@ public class DepotVerticle extends AbstractVerticle {
             getProductAndShowNext(context);
         });
 
-        router.get("/products/index.html").handler(context -> {
+        router.getWithRegex("/products|/products/|/products/index.html").handler(context -> {
             Product.all(mongoService, res -> {
                 if (res.succeeded()) {
                     context.put("products", res.result());
@@ -113,7 +113,9 @@ public class DepotVerticle extends AbstractVerticle {
             });
         });
 
-        router.route("/products/*").handler(new ProductsTemplateHandler(ThymeleafTemplateEngine.create().setMode("HTML5"), "templates/products", "text/html"));
+        router.route("/products/*").handler(
+                new DepotTemplateHandler(ThymeleafTemplateEngine.create().setMode("HTML5"),
+                        "templates/products", "text/html", "/products/"));
 
 //        router.route("/").handler(context -> {
 //            Product.all(mongoService, result -> {
