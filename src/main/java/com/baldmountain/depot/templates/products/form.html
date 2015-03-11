@@ -1,36 +1,37 @@
-<%= form_for(@product) do |f| %>
-<% if @product.errors.any? %>
-<div id="error_explanation">
-    <h2><%= pluralize(@product.errors.count, "error") %>
-        prohibited this product from being saved:</h2>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="form">
+    <form action="/products/save">
+        <div th:if="${context.get('errors')}" id="error_explanation">
+            <h2> errors prohibited this product from being saved:</h2>
 
-    <ul>
-        <% @product.errors.full_messages.each do |msg| %>
-        <li><%= msg %></li>
-        <% end %>
-    </ul>
-</div>
-<% end %>
+            <ul>
+                <li th:each="error : ${context.get('errors')}" th:text="${error}"></li>
+            </ul>
+        </div>
 
-<div class="field">
-    <%= f.label :title %><br>
-    <%= f.text_field :title %>
+        <div class="field">
+            <label for="title">Title</label><br />
+            <input type="text" id="title" name="title" th:value="*{title}" />
+        </div>
+        <div class="field">
+            <label for="description">Description</label><br />
+            <textarea id="description" name="description" th:text="*{description}" rows="6"></textarea>
+        </div>
+        <div class="field">
+            <label for="imageUrl">Image URL</label><br />
+            <input type="text" id="imageUrl" name="imageUrl" th:value="*{imageUrl}" />
+        </div>
+        <div class="field">
+            <label for="price">Price</label><br />
+            <input type="text" id="price" name="price" th:value="*{price}" />
+        </div>
+
+        <div class="actions">
+            <input type="submit" />
+        </div>
+    </form>
 </div>
-<div class="field">
-    <%= f.label :description %><br>
-    <!-- START_HIGHLIGHT -->
-    <%= f.text_area :description, rows: 6 %>
-    <!-- END_HIGHLIGHT -->
-</div>
-<div class="field">
-    <%= f.label :image_url %><br>
-    <%= f.text_field :image_url %>
-</div>
-<div class="field">
-    <%= f.label :price %><br>
-    <%= f.text_field :price %>
-</div>
-<div class="actions">
-    <%= f.submit %>
-</div>
-<% end %>
+</body>
+</html>

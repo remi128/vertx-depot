@@ -31,7 +31,6 @@ public class DepotTemplateHandler implements TemplateHandler {
         String[] parts = path.split("/");
         switch(parts.length) {
             case 3:
-                path = pathPrefix+parts[1]+".html";
             case 2:
                 if (parts[1].isEmpty() || "index.html".equals(parts[1])) {
                     path = pathPrefix+"index.html";

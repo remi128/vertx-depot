@@ -1,9 +1,11 @@
 package com.baldmountain.depot;
 
 import com.baldmountain.depot.models.Product;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.codetrans.annotations.CodeTranslate;
 import io.vertx.core.AbstractVerticle;
 //import io.vertx.core.DeploymentOptions;
+import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.impl.LoggerFactory;
@@ -94,6 +96,13 @@ public class DepotVerticle extends AbstractVerticle {
 //                    .setStatusCode(302).end();
 //        });
 
+        router.route("/").handler(context -> {
+            HttpServerResponse response = context.response();
+            response.putHeader("location", "/products");
+            response.setStatusCode(302);
+            response.end();
+        });
+
         router.get("/products/edit/:productId").handler(context -> {
             getProductAndShowNext(context);
         });
@@ -113,9 +122,9 @@ public class DepotVerticle extends AbstractVerticle {
             });
         });
 
+        ThymeleafTemplateEngine engine = ThymeleafTemplateEngine.create().setMode("HTML5");
         router.route("/products/*").handler(
-                new DepotTemplateHandler(ThymeleafTemplateEngine.create().setMode("HTML5"),
-                        "templates/products", "text/html", "/products/"));
+                new DepotTemplateHandler(engine, "templates/products", "text/html", "/products/"));
 
 //        router.route("/").handler(context -> {
 //            Product.all(mongoService, result -> {
