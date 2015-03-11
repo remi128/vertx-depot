@@ -4,6 +4,7 @@
 .project
 .settings
 .idea
+.sass-cache
 .vertx
 .yardoc
 .yardopts

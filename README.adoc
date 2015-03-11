@@ -1,7 +1,9 @@
-= Vert.x 3.0 Simplest Gradle project
+= Vert.x 3.0 Depot project
 
-This project shows a very simple hello world Vert.x 3.0 project using Gradle, which has a simple HTTP server which
-simply returns "Hello World!" to every request.
+This project shows a very simple implementation of the depot application described in "Agile Web Development with Rails".
+The resources are just lifted straight from the sample code and used here.
+
+This is a Vert.x 3.0 project using Gradle
 
 In this example Vert.x is used embedded. I.e. we use the Vert.x APIs directly in our own classes rather than deploying
 the code in verticles.
@@ -25,4 +27,4 @@ java -jar build/libs/vertx-depot-3.0.0-SNAPSHOT-fat.jar com.baldmountain.depot.D
 (You can take that jar and run it anywhere there is a Java 8+ JDK. It contains all the dependencies it needs so you
 don't need to install Vert.x on the target machine).
 
-Now point your browser at http://localhost:8080
+Now point your browser at http://localhost:8080/store

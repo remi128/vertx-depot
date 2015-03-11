@@ -179,6 +179,7 @@ public class Product extends BaseModel {
         service.find("products", new JsonObject(), res -> {
             if (res.succeeded()) {
                 List<Product> products = res.result().stream().map(Product::new).collect(Collectors.toList());
+                products.sort((p1, p2) -> p1.getTitle().compareTo(p2.getTitle()));
                 resultHandler.handle(new AsyncResult<List<Product>>() {
                     @Override
                     public List<Product> result() {
