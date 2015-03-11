@@ -1,7 +1,8 @@
 = Vert.x 3.0 Depot project
 
 This project shows a very simple implementation of the depot application described in "Agile Web Development with Rails".
-The resources are just lifted straight from the sample code and used here.
+The resources are just lifted straight from the sample code and used here. The current state is about step E. There
+are a good number of Rails features that are missing or implemented only partially, but it mainly works.
 
 This is a Vert.x 3.0 project using Gradle
 
