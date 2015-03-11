@@ -1,5 +1,6 @@
 package com.baldmountain.depot.models;
 
+import com.baldmountain.depot.ConcreteAsyncResult;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
@@ -63,27 +64,7 @@ public class LineItem extends BaseModel {
             // update existing
             service.replace("line_items",
                     new JsonObject().put("_id", id),
-                    json, (Void) -> resultHandler.handle(new AsyncResult<String>() {
-                        @Override
-                        public String result() {
-                            return id;
-                        }
-
-                        @Override
-                        public Throwable cause() {
-                            return null;
-                        }
-
-                        @Override
-                        public boolean succeeded() {
-                            return true;
-                        }
-
-                        @Override
-                        public boolean failed() {
-                            return false;
-                        }
-                    }));
+                    json, (Void) -> resultHandler.handle(new ConcreteAsyncResult<>(id)));
         } else {
             service.save("line_items", json, resultHandler);
         }
@@ -94,49 +75,9 @@ public class LineItem extends BaseModel {
         service.find("line_items", query, res -> {
             if (res.succeeded()) {
                 List<LineItem> lineItems = res.result().stream().map(LineItem::new).collect(Collectors.toList());
-                resultHandler.handle(new AsyncResult<List<LineItem>>() {
-                    @Override
-                    public List<LineItem> result() {
-                        return lineItems;
-                    }
-
-                    @Override
-                    public Throwable cause() {
-                        return null;
-                    }
-
-                    @Override
-                    public boolean succeeded() {
-                        return true;
-                    }
-
-                    @Override
-                    public boolean failed() {
-                        return false;
-                    }
-                });
+                resultHandler.handle(new ConcreteAsyncResult<>(lineItems));
             } else {
-                resultHandler.handle(new AsyncResult<List<LineItem>>() {
-                    @Override
-                    public List<LineItem> result() {
-                        return null;
-                    }
-
-                    @Override
-                    public Throwable cause() {
-                        return res.cause();
-                    }
-
-                    @Override
-                    public boolean succeeded() {
-                        return false;
-                    }
-
-                    @Override
-                    public boolean failed() {
-                        return true;
-                    }
-                });
+                resultHandler.handle(new ConcreteAsyncResult<>(res.cause()));
             }
         });
     }

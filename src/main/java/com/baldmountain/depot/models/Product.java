@@ -1,5 +1,6 @@
 package com.baldmountain.depot.models;
 
+import com.baldmountain.depot.ConcreteAsyncResult;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.AsyncResultHandler;
 import io.vertx.core.Handler;
@@ -98,27 +99,7 @@ public class Product extends BaseModel {
             // update existing
             service.replace("products",
                     new JsonObject().put("_id", id),
-                    json, (Void) -> resultHandler.handle(new AsyncResult<String>() {
-                            @Override
-                            public String result() {
-                                return id;
-                            }
-
-                            @Override
-                            public Throwable cause() {
-                                return null;
-                            }
-
-                            @Override
-                            public boolean succeeded() {
-                                return true;
-                            }
-
-                            @Override
-                            public boolean failed() {
-                                return false;
-                            }
-                        }));
+                    json, (Void) -> resultHandler.handle(new ConcreteAsyncResult<>(id)));
         } else {
             service.save("products", json, resultHandler);
         }
@@ -128,49 +109,9 @@ public class Product extends BaseModel {
         JsonObject query = new JsonObject().put("_id", id);
         service.findOne("products", query, null, res -> {
             if (res.succeeded()) {
-                resultHandler.handle(new AsyncResult<Product>() {
-                    @Override
-                    public Product result() {
-                        return new Product(res.result());
-                    }
-
-                    @Override
-                    public Throwable cause() {
-                        return null;
-                    }
-
-                    @Override
-                    public boolean succeeded() {
-                        return true;
-                    }
-
-                    @Override
-                    public boolean failed() {
-                        return false;
-                    }
-                });
+                resultHandler.handle(new ConcreteAsyncResult<>(new Product(res.result())));
             } else {
-                resultHandler.handle(new AsyncResult<Product>() {
-                    @Override
-                    public Product result() {
-                        return null;
-                    }
-
-                    @Override
-                    public Throwable cause() {
-                        return res.cause();
-                    }
-
-                    @Override
-                    public boolean succeeded() {
-                        return false;
-                    }
-
-                    @Override
-                    public boolean failed() {
-                        return true;
-                    }
-                });
+                resultHandler.handle(new ConcreteAsyncResult<>(res.cause()));
             }
         });
     }
@@ -180,49 +121,9 @@ public class Product extends BaseModel {
             if (res.succeeded()) {
                 List<Product> products = res.result().stream().map(Product::new).collect(Collectors.toList());
                 products.sort((p1, p2) -> p1.getTitle().compareTo(p2.getTitle()));
-                resultHandler.handle(new AsyncResult<List<Product>>() {
-                    @Override
-                    public List<Product> result() {
-                        return products;
-                    }
-
-                    @Override
-                    public Throwable cause() {
-                        return null;
-                    }
-
-                    @Override
-                    public boolean succeeded() {
-                        return true;
-                    }
-
-                    @Override
-                    public boolean failed() {
-                        return false;
-                    }
-                });
+                resultHandler.handle(new ConcreteAsyncResult<>(products));
             } else {
-                resultHandler.handle(new AsyncResult<List<Product>>() {
-                    @Override
-                    public List<Product> result() {
-                        return null;
-                    }
-
-                    @Override
-                    public Throwable cause() {
-                        return res.cause();
-                    }
-
-                    @Override
-                    public boolean succeeded() {
-                        return false;
-                    }
-
-                    @Override
-                    public boolean failed() {
-                        return true;
-                    }
-                });
+                resultHandler.handle(new ConcreteAsyncResult<>(res.cause()));
             }
         });
     }
