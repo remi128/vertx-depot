@@ -41,7 +41,11 @@ public class DepotTemplateHandler implements TemplateHandler {
             default:
                 path = pathPrefix+"index.html";
         }
-        String file = templateDirectory + Utils.pathOffset(path, context);
+        renderSpecificPath(context, Utils.pathOffset(path, context));
+    }
+
+    public void renderSpecificPath(RoutingContext context, String path) {
+        String file = templateDirectory + path;
         engine.render(context, file, res -> {
             if (res.succeeded()) {
                 context.response().putHeader(HttpHeaders.CONTENT_TYPE, contentType).end(res.result());

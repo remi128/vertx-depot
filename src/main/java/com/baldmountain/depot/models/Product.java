@@ -3,6 +3,7 @@ package com.baldmountain.depot.models;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.AsyncResultHandler;
 import io.vertx.core.Handler;
+import io.vertx.core.MultiMap;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.MongoService;
 
@@ -36,6 +37,19 @@ public class Product extends BaseModel {
         this.price = price;
     }
 
+    public Product(MultiMap formParams, boolean validate) {
+        update(formParams, validate);
+    }
+
+    // empty Product for /products/new
+    public Product() {
+        title = "";
+        description = "";
+        imageUrl = "";
+        price = BigDecimal.ZERO.setScale(2, RoundingMode.CEILING);
+    }
+
+
     public String getTitle() {
         return title;
     }
@@ -52,6 +66,27 @@ public class Product extends BaseModel {
         return price;
     }
 
+    public void update(MultiMap formParams, boolean validate) {
+        if (validate) {
+            if (formParams.get("title").isEmpty()) {
+                throw new IllegalArgumentException("Product must have a title");
+            }
+            title = formParams.get("title");
+            description = formParams.get("description");
+            imageUrl = formParams.get("imageUrl");
+            price = new BigDecimal(formParams.get("price")).setScale(2, RoundingMode.CEILING);
+        } else {
+            title = formParams.get("title");
+            description = formParams.get("description");
+            imageUrl = formParams.get("imageUrl");
+            try {
+                price = new BigDecimal(formParams.get("price")).setScale(2, RoundingMode.CEILING);
+            } catch(Exception e) {
+                // ignore
+            }
+        }
+    }
+
     public void save(MongoService service, Handler<AsyncResult<String>> resultHandler) {
         JsonObject json = new JsonObject()
                 .put("title", title)
@@ -61,7 +96,7 @@ public class Product extends BaseModel {
         setDates(json);
         if (id != null) {
             // update existing
-            service.update("products",
+            service.replace("products",
                     new JsonObject().put("_id", id),
                     json, (Void) -> resultHandler.handle(new AsyncResult<String>() {
                             @Override

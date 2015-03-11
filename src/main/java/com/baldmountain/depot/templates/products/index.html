@@ -10,7 +10,7 @@
 </head>
 <body th:class="products">
 <h1>Listing <span th:text="${context.get('products').size()}"></span> products</h1>
-
+<p id="notice" th:if="${context.get('notice')}"  th:text="${context.get('notice')}"></p>
 <table>
     <tr th:each="product : ${context.get('products')}" th:class="${productStat.odd} ? 'list_line_even' : 'list_line_odd'">
         <td>

@@ -20,6 +20,9 @@ import io.vertx.ext.apex.templ.ThymeleafTemplateEngine;
 // import io.vertx.ext.auth.shiro.ShiroAuthService;
 import io.vertx.ext.mongo.MongoService;
 
+import java.math.BigDecimal;
+import java.util.Collections;
+
 /**
  * @author Geoffrey Clements
  */
@@ -52,6 +55,8 @@ public class DepotVerticle extends AbstractVerticle {
         JsonObject config = new JsonObject().put("db_name", "depot_development");
         mongoService = MongoService.create(vertx, config);
         mongoService.start();
+        final ThymeleafTemplateEngine engine = ThymeleafTemplateEngine.create().setMode("HTML5");
+        final DepotTemplateHandler templateHandler = new DepotTemplateHandler(engine, "templates/products", "text/html", "/products/");
 
 // Now do stuff with it:
 
@@ -69,7 +74,7 @@ public class DepotVerticle extends AbstractVerticle {
         // We need cookies, sessions and request bodies
         router.route().handler(CookieHandler.create());
         router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
-//        router.route().handler(BodyHandler.create());
+        router.route().handler(BodyHandler.create());
 
         // Simple auth service which uses a properties file for user/role info
 //        final AuthService authService = ShiroAuthService.create(vertx,
@@ -111,6 +116,92 @@ public class DepotVerticle extends AbstractVerticle {
             getProductAndShowNext(context);
         });
 
+        router.post("/products/delete/:productId").handler(context -> {
+            String productID = context.request().getParam("productid");
+            Product.find(mongoService, productID, res -> {
+                if (res.succeeded()) {
+                    res.result().delete(mongoService, res2 -> {
+                        HttpServerResponse response = context.response();
+                        response.putHeader("location", "/products");
+                        response.setStatusCode(302);
+                        response.end();
+                    });
+                } else {
+                    context.fail(res.cause());
+                }
+            });
+        });
+
+        router.get("/products/new").handler(context -> {
+            context.put("product", new Product());
+            context.next();
+        });
+
+        router.post("/products/save").handler(context -> {
+            String id = context.request().formAttributes().get("_id");
+            if (id != null && !id.isEmpty()) {
+                Product.find(mongoService, id, res -> {
+                    if (res.succeeded()) {
+                        Product product = res.result();
+                        try {
+                            product.update(context.request().formAttributes(), true);
+                            product.save(mongoService, res2 -> {
+                                if (res2.succeeded()) {
+                                    Product.all(mongoService, res3 -> {
+                                        if (res3.succeeded()) {
+                                            HttpServerResponse response = context.response();
+                                            response.putHeader("location", "/products");
+                                            response.setStatusCode(302);
+                                            response.end();
+                                        } else {
+                                            context.fail(res2.cause());
+                                        }
+                                    });
+                                } else {
+                                    context.fail(res2.cause());
+                                }
+                            });
+                        } catch (Exception e) {
+                            product.update(context.request().formAttributes(), false);
+                            context.put("product", new Product(context.request().formAttributes(), false));
+                            context.put("errors", Collections.singletonList(e.getMessage()));
+                            templateHandler.renderSpecificPath(context, "/edit.html");
+                        }
+                    } else {
+                        context.put("product", new Product(context.request().formAttributes(), false));
+                        context.put("errors", Collections.singletonList(res.cause().getMessage()));
+                        templateHandler.renderSpecificPath(context, "/new.html");
+                    }
+                });
+            } else {
+                try {
+                    Product product = new Product(context.request().formAttributes(), true);
+                    product.save(mongoService, res -> {
+                        if (res.succeeded()) {
+                            Product.all(mongoService, res2 -> {
+                                if (res.succeeded()) {
+                                    HttpServerResponse response = context.response();
+                                    response.putHeader("location", "/products");
+                                    response.setStatusCode(302);
+                                    response.end();
+                                } else {
+                                    context.fail(res2.cause());
+                                }
+                            });
+                        } else {
+                            context.put("product", new Product(context.request().formAttributes(), false));
+                            context.put("errors", Collections.singletonList(res.cause().getMessage()));
+                            templateHandler.renderSpecificPath(context, "/new.html");
+                        }
+                    });
+                } catch (Exception e) {
+                    context.put("product", new Product(context.request().formAttributes(), false));
+                    context.put("errors", Collections.singletonList(e.getMessage()));
+                    templateHandler.renderSpecificPath(context, "/new.html");
+                }
+            }
+        });
+
         router.getWithRegex("/products|/products/|/products/index.html").handler(context -> {
             Product.all(mongoService, res -> {
                 if (res.succeeded()) {
@@ -122,9 +213,7 @@ public class DepotVerticle extends AbstractVerticle {
             });
         });
 
-        ThymeleafTemplateEngine engine = ThymeleafTemplateEngine.create().setMode("HTML5");
-        router.route("/products/*").handler(
-                new DepotTemplateHandler(engine, "templates/products", "text/html", "/products/"));
+        router.route("/products/*").handler(templateHandler);
 
 //        router.route("/").handler(context -> {
 //            Product.all(mongoService, result -> {

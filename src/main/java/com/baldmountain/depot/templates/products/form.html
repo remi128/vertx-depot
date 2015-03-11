@@ -1,8 +1,11 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head></head>
 <body>
 <div th:fragment="form">
-    <form action="/products/save">
+    <form action="/products/save" method="post">
+        <input type="hidden" name="_method" value="PUT" />
+        <input type="hidden" name="_id" th:value="*{id}" />
         <div th:if="${context.get('errors')}" id="error_explanation">
             <h2> errors prohibited this product from being saved:</h2>
 
