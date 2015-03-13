@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Depot</title>
+    <title>Pragprog Books Online Store</title>
     <link rel="shortcut icon" href="/favicon.ico" />
     <link rel="stylesheet" type="text/css" href="/css/application.css" />
     <link rel="stylesheet" type="text/css" href="/css/scaffolds.css" />
@@ -10,18 +10,27 @@
     <script type="text/javascript" src="/js/jquery.restfulizer.js"></script>
 </head>
 <body th:class="store">
-<p id="notice" th:if="${context.get('notice')}"  th:text="${context.get('notice')}"></p>
-<h1>Your Pragmatic Catalog</h1>
+<div id="banner">
+    <img src="/images/logo.png" />
+    <span th:text="${page_title} != null ? ${page_title} : 'Pragmatic Bookshelf'"></span>
+</div>
+<div id="columns">
+    <div id="side" th:include="templates/side_menu.html :: side_menu"></div>
+    <div id="main">
+        <p id="notice" th:if="${context.get('notice')}"  th:text="${context.get('notice')}"></p>
+        <h1>Your Pragmatic Catalog</h1>
 
-<div th:each="product : ${context.get('products')}" class="entry">
-    <img th:if="${product.imageUrl} != ''" th:src="${product.imageUrl}" th:class="list_image" />
-    <h3 th:text="${product.title}"></h3>
-    <div th:utext="${product.description}"></div>
-    <div class="price_line">
-      <span th:text="|$${product.price}|" class="price"></span>
-        <form th:action="|/line_items/create/${product.id}|">
-            <button type="submit">Add to Cart</button>
-        </form>
+        <div th:each="product : ${context.get('products')}" class="entry">
+            <img th:if="${product.imageUrl} != ''" th:src="${product.imageUrl}" th:class="list_image" />
+            <h3 th:text="${product.title}"></h3>
+            <div th:utext="${product.description}"></div>
+            <div class="price_line">
+                <span th:text="|$${product.price}|" class="price"></span>
+                <form th:action="|/line_items/create/${product.id}|">
+                    <button type="submit">Add to Cart</button>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 <script type="text/javascript">

@@ -3,7 +3,9 @@ package com.baldmountain.depot;
 import com.baldmountain.depot.models.Cart;
 import com.baldmountain.depot.models.LineItem;
 import com.baldmountain.depot.models.Product;
+import io.vertx.ext.apex.Cookie;
 import io.vertx.ext.apex.Router;
+import io.vertx.ext.apex.RoutingContext;
 import io.vertx.ext.apex.templ.ThymeleafTemplateEngine;
 import io.vertx.ext.mongo.MongoService;
 
@@ -24,6 +26,7 @@ public class CartsController extends AbstractController{
 
     public AbstractController setupRoutes() {
         router.get("/carts/show").handler(context -> {
+            moveNoticeToContext(context);
             getCart(context, res -> {
                 if (res.succeeded()) {
                     Cart cart = res.result();
@@ -54,5 +57,4 @@ public class CartsController extends AbstractController{
         router.route("/carts/*").handler(templateHandler);
         return this;
     }
-
 }

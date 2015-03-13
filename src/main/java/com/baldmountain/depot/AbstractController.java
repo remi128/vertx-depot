@@ -4,9 +4,11 @@ import com.baldmountain.depot.models.Cart;
 import com.baldmountain.depot.models.Product;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
+import io.vertx.ext.apex.Cookie;
 import io.vertx.ext.apex.Router;
 import io.vertx.ext.apex.RoutingContext;
 import io.vertx.ext.apex.Session;
+import io.vertx.ext.apex.impl.CookieImpl;
 import io.vertx.ext.mongo.MongoService;
 
 /**
@@ -67,5 +69,20 @@ public abstract class AbstractController {
                 }
             });
         }
+    }
+
+    protected void moveNoticeToContext(RoutingContext context) {
+        Cookie notice = context.getCookie("depot_notice");
+        if(notice != null) {
+            context.removeCookie("notice");
+            String value = notice.getValue();
+            if (value != null && !value.isEmpty()) {
+                context.put("notice", notice);
+            }
+        }
+    }
+
+    protected void setNoticeInCookie(RoutingContext context, String notice) {
+        context.addCookie(new CookieImpl("notice", notice));
     }
 }

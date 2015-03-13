@@ -28,6 +28,7 @@ public class LineItemsController extends AbstractController {
                                 if (res3.succeeded()) {
                                     cart.save(mongoService, res4 -> {
                                         if (res4.succeeded()) {
+                                            setNoticeInCookie(context, "Line item was successfully created.");
                                             HttpServerResponse response = context.response();
                                             response.putHeader("location", "/carts/show");
                                             response.setStatusCode(302);
