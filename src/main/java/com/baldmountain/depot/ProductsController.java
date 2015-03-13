@@ -33,11 +33,10 @@ public class ProductsController extends AbstractController {
             String productID = context.request().getParam("productid");
             Product.find(mongoService, productID, res -> {
                 if (res.succeeded()) {
-                    res.result().delete(mongoService, res2 -> {
-                        HttpServerResponse response = context.response();
-                        response.putHeader("location", "/products");
-                        response.setStatusCode(302);
-                        response.end();
+                    Product product = res.result();
+                    product.delete(mongoService, res2 -> {
+                        setNoticeInCookie(context, "'" + product.getTitle() + "' was deleted.")
+                                .redirectTo(context, "/products");
                     });
                 } else {
                     context.fail(res.cause());
@@ -62,10 +61,8 @@ public class ProductsController extends AbstractController {
                                 if (res2.succeeded()) {
                                     Product.all(mongoService, res3 -> {
                                         if (res3.succeeded()) {
-                                            HttpServerResponse response = context.response();
-                                            response.putHeader("location", "/products");
-                                            response.setStatusCode(302);
-                                            response.end();
+                                            setNoticeInCookie(context, "'"+product.getTitle()+"' was successfully saved.")
+                                                    .redirectTo(context, "/products");
                                         } else {
                                             context.fail(res2.cause());
                                         }
@@ -93,10 +90,8 @@ public class ProductsController extends AbstractController {
                         if (res.succeeded()) {
                             Product.all(mongoService, res2 -> {
                                 if (res.succeeded()) {
-                                    HttpServerResponse response = context.response();
-                                    response.putHeader("location", "/products");
-                                    response.setStatusCode(302);
-                                    response.end();
+                                    setNoticeInCookie(context, "'"+product.getTitle()+"' was successfully created.")
+                                            .redirectTo(context, "/products");
                                 } else {
                                     context.fail(res2.cause());
                                 }
@@ -116,6 +111,7 @@ public class ProductsController extends AbstractController {
         });
 
         router.getWithRegex("/products|/products/|/products/index.html").handler(context -> {
+            moveNoticeToContext(context);
             Product.all(mongoService, res -> {
                 if (res.succeeded()) {
                     context.put("products", res.result());

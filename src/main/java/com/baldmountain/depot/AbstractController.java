@@ -4,6 +4,7 @@ import com.baldmountain.depot.models.Cart;
 import com.baldmountain.depot.models.Product;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
+import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.apex.Cookie;
 import io.vertx.ext.apex.Router;
 import io.vertx.ext.apex.RoutingContext;
@@ -38,21 +39,26 @@ public abstract class AbstractController {
 
     public abstract AbstractController setupRoutes();
 
-    public void getCart(RoutingContext context, Handler<AsyncResult<Cart>> requestHandler) {
+    public AbstractController getCart(RoutingContext context, Handler<AsyncResult<Cart>> requestHandler) {
         Session session = context.session();
         String cartId = session.get("cart");
         if (cartId != null) {
             // get the existing one
             Cart.find(mongoService, cartId, res -> {
-                Cart cart = res.result();
-                // make sure the cart we are loading has it's line items
-                cart.getLineItems(mongoService, res2 -> {
-                    if (res2.succeeded()) {
-                        requestHandler.handle(new ConcreteAsyncResult<>(cart));
-                    } else {
-                        requestHandler.handle(new ConcreteAsyncResult<>(res2.cause()));
-                    }
-                });
+                if (res.succeeded()) {
+                    Cart cart = res.result();
+                    // make sure the cart we are loading has it's line items
+                    cart.getLineItems(mongoService, res2 -> {
+                        if (res2.succeeded()) {
+                            requestHandler.handle(new ConcreteAsyncResult<>(cart));
+                        } else {
+                            requestHandler.handle(new ConcreteAsyncResult<>(res2.cause()));
+                        }
+                    });
+                } else {
+                    setNoticeInCookie(context, "Invaid cart");
+
+                }
             });
         } else {
             // make a new cart
@@ -69,20 +75,31 @@ public abstract class AbstractController {
                 }
             });
         }
+        return this;
     }
 
-    protected void moveNoticeToContext(RoutingContext context) {
+    protected AbstractController moveNoticeToContext(RoutingContext context) {
         Cookie notice = context.getCookie("depot_notice");
         if(notice != null) {
-            context.removeCookie("notice");
             String value = notice.getValue();
+            context.removeCookie("depot_notice");
             if (value != null && !value.isEmpty()) {
-                context.put("notice", notice);
+                context.put("notice", value);
             }
         }
+        return this;
     }
 
-    protected void setNoticeInCookie(RoutingContext context, String notice) {
-        context.addCookie(new CookieImpl("notice", notice));
+    protected AbstractController  setNoticeInCookie(RoutingContext context, String notice) {
+        context.addCookie(Cookie.cookie("depot_notice", notice));
+        return this;
+    }
+
+    protected AbstractController redirectTo(RoutingContext context, String route) {
+        HttpServerResponse response = context.response();
+        response.putHeader("location", route);
+        response.setStatusCode(302);
+        response.end();
+        return this;
     }
 }
