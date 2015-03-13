@@ -27,7 +27,11 @@
     .store .entry p, .store .entry div.price_line {
       margin-left: 100px;
       margin-top: 0.5em;
-      margin-bottom: 0.8em; }
+      margin-bottom: 0.8em;
+      /* START_HIGHLIGHT */
+      /* END_HIGHLIGHT */ }
+      .store .entry p form, .store .entry p div, .store .entry div.price_line form, .store .entry div.price_line div {
+        display: inline; }
     .store .entry .price {
       color: #44a;
       font-weight: bold;

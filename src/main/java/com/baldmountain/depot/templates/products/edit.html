@@ -3,6 +3,7 @@
 <head>
     <title>Depot</title>
     <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="stylesheet" type="text/css" href="/css/application.css" />
     <link rel="stylesheet" type="text/css" href="/css/scaffolds.css" />
     <link rel="stylesheet" type="text/css" href="/css/products.css" />
     <script type="text/javascript" src="/js/jquery-1.11.2.min.js"></script>
@@ -10,6 +11,7 @@
 </head>
 <body th:class="products" th:object="${context.get('product')}">
     <h1>Editing product</h1>
+    <p id="notice" th:if="${context.get('notice')}"  th:text="${context.get('notice')}"></p>
 
     <div th:replace="templates/products/form.html :: form"></div>
 
