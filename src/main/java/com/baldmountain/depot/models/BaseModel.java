@@ -33,6 +33,9 @@ class BaseModel {
             } catch (ParseException e) {
                 // bad date, update to now
                 createdOn = new Date();
+            } catch (NumberFormatException e) {
+                // bug in the date parser
+                createdOn = new Date();
             }
         } else {
             createdOn = new Date();
@@ -42,6 +45,8 @@ class BaseModel {
             try {
                 updatedOn = dateFormat.parse(s);
             } catch (ParseException e) {
+                // just ignore
+            } catch (NumberFormatException e) {
                 // just ignore
             }
         }

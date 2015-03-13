@@ -34,6 +34,7 @@ public class Product extends BaseModel {
     }
 
     public Product(String title, String description, String imageUrl, BigDecimal price) {
+        this();
         this.title = title;
         this.description = description;
         this.imageUrl = imageUrl;
@@ -41,6 +42,7 @@ public class Product extends BaseModel {
     }
 
     public Product(MultiMap formParams, boolean validate) {
+        this();
         update(formParams, validate);
     }
 
@@ -71,18 +73,18 @@ public class Product extends BaseModel {
 
     public Product update(MultiMap formParams, boolean validate) {
         String s = formParams.get("description");
-        if (!description.equals(s)) {
+        if (s != null && !description.equals(s)) {
             description = s;
             dirty = true;
         }
         s = formParams.get("imageUrl");
-        if (!imageUrl.equals(s)) {
+        if (s != null && !imageUrl.equals(s)) {
             imageUrl = s;
             dirty = true;
         }
         if (validate) {
             s = formParams.get("title");
-            if (s.isEmpty()) {
+            if (s == null || s.isEmpty()) {
                 throw new IllegalArgumentException("Product must have a title");
             }
             if (!title.equals(s)) {
@@ -96,7 +98,7 @@ public class Product extends BaseModel {
             }
         } else {
             s = formParams.get("title");
-            if (!title.equals(s)) {
+            if (s != null && !title.equals(s)) {
                 title = s;
                 dirty = true;
             }
