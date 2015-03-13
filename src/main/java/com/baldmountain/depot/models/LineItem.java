@@ -62,6 +62,8 @@ public class LineItem extends BaseModel {
                 service.replace("line_items",
                         new JsonObject().put("_id", id),
                         json, (Void) -> resultHandler.handle(new ConcreteAsyncResult<>(id)));
+            } else {
+                resultHandler.handle(new ConcreteAsyncResult<>(id));
             }
         } else {
             setDates(json);
