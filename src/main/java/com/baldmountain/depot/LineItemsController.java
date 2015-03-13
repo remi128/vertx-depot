@@ -1,5 +1,6 @@
 package com.baldmountain.depot;
 
+import com.baldmountain.depot.models.Cart;
 import com.baldmountain.depot.models.Product;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.apex.Router;
@@ -22,19 +23,26 @@ public class LineItemsController extends AbstractController {
                 if (res.succeeded()) {
                     getCart(context, res2 ->{
                         if (res2.succeeded()) {
-                            res2.result().addProduct(res.result(), mongoService, res3 -> {
+                            Cart cart = res2.result();
+                            cart.addProduct(res.result(), mongoService, res3 -> {
                                 if (res3.succeeded()) {
-                                    HttpServerResponse response = context.response();
-                                    response.putHeader("location", "/carts/show/"+res2.result().getId());
-                                    response.setStatusCode(302);
-                                    response.end();
+                                    cart.save(mongoService, res4 -> {
+                                        if (res4.succeeded()) {
+                                            HttpServerResponse response = context.response();
+                                            response.putHeader("location", "/carts/show");
+                                            response.setStatusCode(302);
+                                            response.end();
+                                        } else {
+                                            context.fail(res4.cause());
+                                        }
+                                    });
                                 }
                                 else {
-                                    context.fail(res.cause());
+                                    context.fail(res3.cause());
                                 }
                             });
                         } else {
-                            context.fail(res.cause());
+                            context.fail(res2.cause());
                         }
                     });
                 } else {

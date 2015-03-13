@@ -38,7 +38,7 @@ class BaseModel {
             createdOn = new Date();
         }
         s = json.getString("updatedOn");
-        if (s != null) {
+        if (s != null && !s.isEmpty()) {
             try {
                 updatedOn = dateFormat.parse(s);
             } catch (ParseException e) {
@@ -51,7 +51,11 @@ class BaseModel {
     void setDates(JsonObject json) {
         json.put("createdOn", dateFormat.format(createdOn));
         setUpdatedOn();
-        json.put("updatedOn", dateFormat.format(updatedOn));
+        if (updatedOn != null) {
+            json.put("updatedOn", dateFormat.format(updatedOn));
+        } else {
+            json.put("updatedOn", "");
+        }
     }
 
     public String getId() {

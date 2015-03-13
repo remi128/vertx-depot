@@ -1,9 +1,14 @@
 package com.baldmountain.depot;
 
 import com.baldmountain.depot.models.Cart;
+import com.baldmountain.depot.models.LineItem;
+import com.baldmountain.depot.models.Product;
 import io.vertx.ext.apex.Router;
 import io.vertx.ext.apex.templ.ThymeleafTemplateEngine;
 import io.vertx.ext.mongo.MongoService;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by gclements on 3/12/15.
@@ -18,17 +23,26 @@ public class CartsController extends AbstractController{
     }
 
     public AbstractController setupRoutes() {
-        router.get("/carts/show/:cartId").handler(context -> {
-            String cartId = context.request().getParam("cartId");
-            Cart.find(mongoService, cartId, res -> {
+        router.get("/carts/show").handler(context -> {
+            getCart(context, res -> {
                 if (res.succeeded()) {
-                    res.result().getLineItems(mongoService, res2 -> {
+                    Cart cart = res.result();
+                    context.put("cart", cart);
+                    cart.getLineItems(mongoService, res2 -> {
                         if (res2.succeeded()) {
-                            context.put("cart", res.result());
-                            context.put("lineItems", res2.result());
-                            context.next();
+                            List<LineItem> lineItems = res2.result();
+                            context.put("lineItems", lineItems);
+                            cart.getProductMapForCart(mongoService, res3 -> {
+                                if (res2.succeeded()) {
+                                    Map<String, Product> productMap = res3.result();
+                                    context.put("productMap", productMap);
+                                    context.next();
+                                } else {
+                                    context.fail(res3.cause());
+                                }
+                            });
                         } else {
-                            context.fail(res.cause());
+                            context.fail(res2.cause());
                         }
                     });
                 } else {

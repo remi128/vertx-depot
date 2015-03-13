@@ -40,12 +40,27 @@ public abstract class AbstractController {
         Session session = context.session();
         String cartId = session.get("cart");
         if (cartId != null) {
-            Cart.find(mongoService, cartId, requestHandler);
+            // get the existing one
+            Cart.find(mongoService, cartId, res -> {
+                Cart cart = res.result();
+                // make sure the cart we are loading has it's line items
+                cart.getLineItems(mongoService, res2 -> {
+                    if (res2.succeeded()) {
+                        requestHandler.handle(new ConcreteAsyncResult<>(cart));
+                    } else {
+                        requestHandler.handle(new ConcreteAsyncResult<>(res2.cause()));
+                    }
+                });
+            });
         } else {
+            // make a new cart
             Cart cart = new Cart();
             cart.save(mongoService, res -> {
                 if (res.succeeded()) {
-                    cart.setId(res.result());
+                    String newCartId = res.result();
+                    cart.setId(newCartId);
+                    // make sure it goes into the session
+                    session.put("cart", newCartId);
                     requestHandler.handle(new ConcreteAsyncResult<>(cart));
                 } else {
                     requestHandler.handle(new ConcreteAsyncResult<>(res.cause()));

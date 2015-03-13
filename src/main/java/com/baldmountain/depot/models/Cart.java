@@ -6,16 +6,16 @@ import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.MongoService;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Created by gclements on 3/11/15.
  *
  */
 public class Cart extends BaseModel {
+    private static final HashMap<String, Cart> cache = new HashMap<>();
     private List<LineItem> lineItems = null;
+
 
     public Cart(JsonObject json) {
         super(json);
@@ -23,7 +23,6 @@ public class Cart extends BaseModel {
 
     // empty Cart
     public Cart() {
-        lineItems = new ArrayList<>();
     }
 
     // we need this in AbstracController.getCart()
@@ -33,22 +32,27 @@ public class Cart extends BaseModel {
     }
 
     public Cart addProduct(Product product, MongoService mongoService, Handler<AsyncResult<String>> resultHandler) {
+        if (lineItems == null) {
+            lineItems = new ArrayList<>();
+        }
+        dirty = true;
         Optional<LineItem> lineItem = lineItems.stream().filter(item -> item.getProductId().equals(product.getId())).findFirst();
         if (lineItem.isPresent()) {
             LineItem li = lineItem.get();
             li.incrementCount(1);
             resultHandler.handle(new ConcreteAsyncResult<>(li.getId()));
         } else {
-            LineItem newLineItem = new LineItem(id, product.getId()).save(mongoService, res -> {
+            LineItem newLineItem = new LineItem(id, product.getId());
+            newLineItem.save(mongoService, res -> {
                 if (res.succeeded()) {
                     // since it is saved, we have an id
-                    this.id = res.result();
-                    resultHandler.handle(new ConcreteAsyncResult<>(this.id));
+                    newLineItem.id = res.result();
+                    lineItems.add(newLineItem);
+                    resultHandler.handle(new ConcreteAsyncResult<>(newLineItem.id));
                 } else {
                     resultHandler.handle(new ConcreteAsyncResult<>(res.cause()));
                 }
             });
-            lineItems.add(newLineItem);
         }
         return this;
     }
@@ -70,35 +74,110 @@ public class Cart extends BaseModel {
     }
 
     public static void find(MongoService mongoService, String id, Handler<AsyncResult<Cart>> resultHandler) {
-        JsonObject query = new JsonObject().put("_id", id);
-        mongoService.findOne("carts", query, null, res -> {
-            if (res.succeeded()) {
-                if (res.result() == null) {
-                    // it's null?
-                    resultHandler.handle(new ConcreteAsyncResult<>(new Cart(new JsonObject().put("_id", id))));
+        Cart cart = cache.get(id);
+        if (cart != null) {
+            resultHandler.handle(new ConcreteAsyncResult<>(cart));
+        } else {
+            JsonObject query = new JsonObject().put("_id", id);
+            mongoService.findOne("carts", query, null, res -> {
+                if (res.succeeded()) {
+                    Cart newCart;
+                    if (res.result() == null) {
+                        // it's null?
+                        newCart = new Cart(new JsonObject().put("_id", id));
+                    } else {
+                        newCart = new Cart(res.result());
+                    }
+                    cache.put(id, newCart);
+                    resultHandler.handle(new ConcreteAsyncResult<>(newCart));
                 } else {
-                    resultHandler.handle(new ConcreteAsyncResult<>(new Cart(res.result())));
+                    resultHandler.handle(new ConcreteAsyncResult<>(res.cause()));
                 }
+            });
+        }
+    }
+
+    private void saveLineItems(MongoService mongoService, Handler<AsyncResult<String>> resultHandler) {
+        if (lineItems != null) {
+            ArrayList<String> savedItems = new ArrayList<>(lineItems.size());
+            if (lineItems.size() > 0) {
+                lineItems.stream().forEach(lineItem -> {
+                    // we should probably wait until this is done. But because carts are cached
+                    // we'll get this one back. There is still a race condition here. :(
+                    lineItem.save(mongoService, res -> {
+                        if (res.succeeded()) {
+                            savedItems.add(res.result());
+                            if (savedItems.size() == lineItems.size()) {
+                                resultHandler.handle(new ConcreteAsyncResult<>(id));
+                            }
+                        } else {
+                            resultHandler.handle(new ConcreteAsyncResult<>(res.cause()));
+                        }
+                    });
+                });
             } else {
-                resultHandler.handle(new ConcreteAsyncResult<>(res.cause()));
+                resultHandler.handle(new ConcreteAsyncResult<>(id));
             }
-        });
+        } else {
+            resultHandler.handle(new ConcreteAsyncResult<>(this.id));
+        }
     }
 
     public Cart save(MongoService mongoService, Handler<AsyncResult<String>> resultHandler) {
         JsonObject json = new JsonObject();
-        setDates(json);
         if (id != null) {
-            // update existing
-            mongoService.replace("carts",
-                    new JsonObject().put("_id", id),
-                    json, (Void) -> resultHandler.handle(new ConcreteAsyncResult<>(id)));
+            if (dirty) {
+                setDates(json);
+                // update existing
+                mongoService.replace("carts",
+                        new JsonObject().put("_id", id),
+                        json, (Void) -> {
+                            dirty = false;
+                            saveLineItems(mongoService, resultHandler);
+                        });
+            } else {
+                resultHandler.handle(new ConcreteAsyncResult<>(id));
+            }
         } else {
-            mongoService.save("carts", json, resultHandler);
+            setDates(json);
+            mongoService.save("carts", json, res -> {
+                if (res.succeeded()) {
+                    this.id = res.result();
+                    dirty = false;
+                    saveLineItems(mongoService, resultHandler);
+                } else {
+                    resultHandler.handle(new ConcreteAsyncResult<>(res.cause()));
+                }
+            });
         }
-        lineItems.stream().forEach(lineItem -> {
-            // we should probably wait until this is done.
-            lineItem.save(mongoService, s -> {});
+        return this;
+    }
+
+    public Cart getProductMapForCart(MongoService mongoService, Handler<AsyncResult<Map<String, Product>>> resultHandler) {
+        getLineItems(mongoService, res -> {
+            if (res.succeeded()) {
+                List<LineItem> lineItems = res.result();
+                Map<String, Product> map = new HashMap<>();
+                if (lineItems.size() > 0) {
+                    lineItems.stream().forEach(lineItem -> {
+                        Product.find(mongoService, lineItem.getProductId(), res2 -> {
+                            if (res2.succeeded()) {
+                                Product p = res2.result();
+                                map.put(p.getId(), p);
+                                if (map.size() == lineItems.size()) {
+                                    resultHandler.handle(new ConcreteAsyncResult<>(map));
+                                } else {
+                                    res2.cause();
+                                }
+                            }
+                        });
+                    });
+                } else {
+                    resultHandler.handle(new ConcreteAsyncResult<>(map));
+                }
+            } else {
+                resultHandler.handle(new ConcreteAsyncResult<>(res.cause()));
+            }
         });
         return this;
     }

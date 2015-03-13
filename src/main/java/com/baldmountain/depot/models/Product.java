@@ -10,7 +10,9 @@ import io.vertx.ext.mongo.MongoService;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class Product extends BaseModel {
@@ -161,6 +163,7 @@ public class Product extends BaseModel {
             }
         });
     }
+
     public Product delete(MongoService service, Handler<AsyncResult<Void>> resultHandler) {
         service.remove("products", new JsonObject().put("_id", id), resultHandler);
         // no longer in DB, unless it fails, then...

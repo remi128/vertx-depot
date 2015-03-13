@@ -6,6 +6,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.MongoService;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,7 +37,7 @@ public class LineItem extends BaseModel {
     }
 
     public String getProductId() {
-        return cartId;
+        return productId;
     }
 
     public int getCount() {
@@ -45,6 +46,7 @@ public class LineItem extends BaseModel {
 
     public int incrementCount(int num) {
         count += num;
+        dirty = true;
         return count;
     }
 
@@ -53,13 +55,16 @@ public class LineItem extends BaseModel {
                 .put("cart", cartId)
                 .put("product", productId)
                 .put("count", count);
-        setDates(json);
         if (id != null) {
             // update existing
-            service.replace("line_items",
-                    new JsonObject().put("_id", id),
-                    json, (Void) -> resultHandler.handle(new ConcreteAsyncResult<>(id)));
+            if (dirty) {
+                setDates(json);
+                service.replace("line_items",
+                        new JsonObject().put("_id", id),
+                        json, (Void) -> resultHandler.handle(new ConcreteAsyncResult<>(id)));
+            }
         } else {
+            setDates(json);
             service.save("line_items", json, resultHandler);
         }
         return this;

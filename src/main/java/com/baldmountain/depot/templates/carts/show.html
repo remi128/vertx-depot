@@ -13,7 +13,7 @@
 
 <h2>Your Pragmatic Cart</h2>
 <ul>
-    <li th:each="lineItem : ${context.get('lineItems')}" th:text="*{lineItem.product.title}"></li>
+    <li th:each="lineItem : ${context.get('lineItems')}" th:object="${context.get('productMap')[lineItem.productId]}" th:text="|*{title} x ${lineItem.count}|"></li>
 </ul>
 
 <script type="text/javascript">
