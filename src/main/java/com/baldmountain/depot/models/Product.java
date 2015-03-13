@@ -67,42 +67,76 @@ public class Product extends BaseModel {
         return price;
     }
 
-    public void update(MultiMap formParams, boolean validate) {
+    public Product update(MultiMap formParams, boolean validate) {
+        String s = formParams.get("description");
+        if (!description.equals(s)) {
+            description = s;
+            dirty = true;
+        }
+        s = formParams.get("imageUrl");
+        if (!imageUrl.equals(s)) {
+            imageUrl = s;
+            dirty = true;
+        }
         if (validate) {
-            if (formParams.get("title").isEmpty()) {
+            s = formParams.get("title");
+            if (s.isEmpty()) {
                 throw new IllegalArgumentException("Product must have a title");
             }
-            title = formParams.get("title");
-            description = formParams.get("description");
-            imageUrl = formParams.get("imageUrl");
-            price = new BigDecimal(formParams.get("price")).setScale(2, RoundingMode.CEILING);
+            if (!title.equals(s)) {
+                title = s;
+                dirty = true;
+            }
+            BigDecimal p = new BigDecimal(formParams.get("price")).setScale(2, RoundingMode.CEILING);
+            if (!price.equals(p)) {
+                price = p;
+                dirty = true;
+            }
         } else {
-            title = formParams.get("title");
-            description = formParams.get("description");
-            imageUrl = formParams.get("imageUrl");
+            s = formParams.get("title");
+            if (!title.equals(s)) {
+                title = s;
+                dirty = true;
+            }
             try {
-                price = new BigDecimal(formParams.get("price")).setScale(2, RoundingMode.CEILING);
+                BigDecimal p = new BigDecimal(formParams.get("price")).setScale(2, RoundingMode.CEILING);
+                if (!price.equals(p)) {
+                    price = p;
+                    dirty = true;
+                }
             } catch(Exception e) {
                 // ignore
             }
         }
+        return this;
     }
 
-    public void save(MongoService service, Handler<AsyncResult<String>> resultHandler) {
-        JsonObject json = new JsonObject()
-                .put("title", title)
-                .put("description", description)
-                .put("imageUrl", imageUrl)
-                .put("price", price.doubleValue());
-        setDates(json);
+    public Product save(MongoService service, Handler<AsyncResult<String>> resultHandler) {
         if (id != null) {
             // update existing
-            service.replace("products",
-                    new JsonObject().put("_id", id),
-                    json, (Void) -> resultHandler.handle(new ConcreteAsyncResult<>(id)));
+            if (dirty) {
+                JsonObject json = new JsonObject()
+                        .put("title", title)
+                        .put("description", description)
+                        .put("imageUrl", imageUrl)
+                        .put("price", price.doubleValue());
+                setDates(json);
+                service.replace("products",
+                        new JsonObject().put("_id", id),
+                        json, (Void) -> resultHandler.handle(new ConcreteAsyncResult<>(id)));
+            } else {
+                resultHandler.handle(new ConcreteAsyncResult<>(id));
+            }
         } else {
+            JsonObject json = new JsonObject()
+                    .put("title", title)
+                    .put("description", description)
+                    .put("imageUrl", imageUrl)
+                    .put("price", price.doubleValue());
+            setDates(json);
             service.save("products", json, resultHandler);
         }
+        return this;
     }
 
     public static void find(MongoService service, String id, Handler<AsyncResult<Product>> resultHandler) {
@@ -127,7 +161,10 @@ public class Product extends BaseModel {
             }
         });
     }
-    public void delete(MongoService service, Handler<AsyncResult<Void>> resultHandler) {
+    public Product delete(MongoService service, Handler<AsyncResult<Void>> resultHandler) {
         service.remove("products", new JsonObject().put("_id", id), resultHandler);
+        // no longer in DB, unless it fails, then...
+        id = null;
+        return this;
     }
 }

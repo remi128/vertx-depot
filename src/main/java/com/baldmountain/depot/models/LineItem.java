@@ -31,12 +31,6 @@ public class LineItem extends BaseModel {
         count = 1;
     }
 
-    public LineItem(String cart, String product, int cnt) {
-        cartId = cart;
-        productId = product;
-        count = cnt;
-    }
-
     public String getCartId() {
         return cartId;
     }
@@ -54,7 +48,7 @@ public class LineItem extends BaseModel {
         return count;
     }
 
-    public void save(MongoService service, Handler<AsyncResult<String>> resultHandler) {
+    public LineItem save(MongoService service, Handler<AsyncResult<String>> resultHandler) {
         JsonObject json = new JsonObject()
                 .put("cart", cartId)
                 .put("product", productId)
@@ -68,6 +62,7 @@ public class LineItem extends BaseModel {
         } else {
             service.save("line_items", json, resultHandler);
         }
+        return this;
     }
 
     public static void findForCart(MongoService service, String cart, Handler<AsyncResult<List<LineItem>>> resultHandler) {

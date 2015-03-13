@@ -1,7 +1,5 @@
 package com.baldmountain.depot;
 
-import com.baldmountain.depot.models.Product;
-import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.codetrans.annotations.CodeTranslate;
 import io.vertx.core.AbstractVerticle;
 //import io.vertx.core.DeploymentOptions;
@@ -11,17 +9,15 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.impl.LoggerFactory;
 import io.vertx.example.util.Runner;
 import io.vertx.ext.apex.Router;
-import io.vertx.ext.apex.RoutingContext;
 import io.vertx.ext.apex.handler.*;
 import io.vertx.ext.apex.sstore.LocalSessionStore;
-import io.vertx.ext.apex.templ.ThymeleafTemplateEngine;
 // import io.vertx.ext.auth.AuthService;
 // import io.vertx.ext.auth.shiro.ShiroAuthRealmType;
 // import io.vertx.ext.auth.shiro.ShiroAuthService;
 import io.vertx.ext.mongo.MongoService;
 
-import java.math.BigDecimal;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Geoffrey Clements
@@ -35,8 +31,8 @@ public class DepotVerticle extends AbstractVerticle {
 
     private static final Logger log = LoggerFactory.getLogger(DepotVerticle.class);
     private MongoService mongoService;
-    private AbstractContoller productsController;
-    private AbstractContoller storeController;
+    // make sure the Controllers don't get GCed.
+    private List<AbstractController> controllers = new ArrayList<>();
 
     @CodeTranslate
     @Override
@@ -89,8 +85,10 @@ public class DepotVerticle extends AbstractVerticle {
 //                    .setStatusCode(302).end();
 //        });
 
-        storeController = new StoreController(router, mongoService).setupRoutes();
-        productsController = new ProductsController(router, mongoService).setupRoutes();
+        controllers.add(new StoreController(router, mongoService).setupRoutes());
+        controllers.add(new ProductsController(router, mongoService).setupRoutes());
+        controllers.add(new LineItemsController(router, mongoService).setupRoutes());
+        controllers.add(new CartsController(router, mongoService).setupRoutes());
 
         router.route("/").handler(context -> {
             HttpServerResponse response = context.response();

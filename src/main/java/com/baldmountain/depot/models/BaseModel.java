@@ -14,6 +14,8 @@ import java.util.Date;
 class BaseModel {
     private static final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
 
+    protected boolean dirty = false;
+
     protected String id;
     protected Date createdOn;
     protected Date updatedOn;
@@ -45,9 +47,10 @@ class BaseModel {
         }
     }
 
+    // only call this if the item is actually dirty
     void setDates(JsonObject json) {
         json.put("createdOn", dateFormat.format(createdOn));
-        updatedOn = new Date();
+        setUpdatedOn();
         json.put("updatedOn", dateFormat.format(updatedOn));
     }
 
@@ -61,6 +64,11 @@ class BaseModel {
 
     public Date getUpdatedOn() {
         return updatedOn;
+    }
+
+    public void setUpdatedOn() {
+        updatedOn = new Date();
+        dirty = true;
     }
 
 

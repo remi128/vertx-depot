@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Depot</title>
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="stylesheet" type="text/css" href="/css/scaffolds.css" />
+    <link rel="stylesheet" type="text/css" href="/css/products.css" />
+    <script type="text/javascript" src="/js/jquery-1.11.2.min.js"></script>
+    <script type="text/javascript" src="/js/jquery.restfulizer.js"></script>
+</head>
+<body th:class="carts" th:object="${context.get('cart')}">
+<p id="notice" th:text="${context.get('notice')}"></p>
+
+<h2>Your Pragmatic Cart</h2>
+<ul>
+    <li th:each="lineItem : ${context.get('lineItems')}" th:text="*{lineItem.product.title}"></li>
+</ul>
+
+<script type="text/javascript">
+        $(".rest").restfulizer();
+    </script>
+</body>
+</html>

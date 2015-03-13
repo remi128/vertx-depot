@@ -12,7 +12,7 @@ import java.util.Collections;
  * Created by gclements on 3/11/15.
  *
  */
-public class ProductsController extends AbstractContoller {
+public class ProductsController extends AbstractController {
     private final ThymeleafTemplateEngine engine = ThymeleafTemplateEngine.create().setMode("HTML5");
     private final DepotTemplateHandler templateHandler = new DepotTemplateHandler(engine, "templates/products", "text/html", "/products/");
 
@@ -20,7 +20,7 @@ public class ProductsController extends AbstractContoller {
         super(router, mongoService);
     }
 
-    public AbstractContoller setupRoutes() {
+    public AbstractController setupRoutes() {
         router.get("/products/edit/:productId").handler(context -> {
             getProductAndShowNext(context);
         });

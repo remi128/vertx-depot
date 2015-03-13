@@ -1,18 +1,15 @@
 package com.baldmountain.depot;
 
 import com.baldmountain.depot.models.Product;
-import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.apex.Router;
 import io.vertx.ext.apex.templ.ThymeleafTemplateEngine;
 import io.vertx.ext.mongo.MongoService;
-
-import java.util.Collections;
 
 /**
  * Created by gclements on 3/11/15.
  *
  */
-public class StoreController extends AbstractContoller {
+public class StoreController extends AbstractController {
     private final ThymeleafTemplateEngine engine = ThymeleafTemplateEngine.create().setMode("HTML5");
     private final DepotTemplateHandler templateHandler = new DepotTemplateHandler(engine, "templates/store", "text/html", "/store/");
 
@@ -20,7 +17,7 @@ public class StoreController extends AbstractContoller {
         super(router, mongoService);
     }
 
-    public AbstractContoller setupRoutes() {
+    public AbstractController setupRoutes() {
         router.get("/store/show/:productId").handler(context -> {
             getProductAndShowNext(context);
         });
