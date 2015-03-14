@@ -9,6 +9,7 @@ import io.vertx.ext.apex.RoutingContext;
 import io.vertx.ext.apex.templ.ThymeleafTemplateEngine;
 import io.vertx.ext.mongo.MongoService;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -61,6 +62,10 @@ public class CartsController extends AbstractController{
                                 if (res2.succeeded()) {
                                     Map<String, Product> productMap = res3.result();
                                     context.put("productMap", productMap);
+                                    BigDecimal totalPrice = lineItems.stream()
+                                            .map(li -> productMap.get(li.getProductId()).getPrice().multiply(new BigDecimal(li.getCount())))
+                                            .reduce(BigDecimal.ZERO, BigDecimal::add);
+                                    context.put("totalPrice", totalPrice);
                                     context.next();
                                 } else {
                                     context.fail(res3.cause());
