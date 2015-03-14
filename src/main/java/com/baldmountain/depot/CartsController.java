@@ -8,8 +8,10 @@ import io.vertx.ext.apex.Router;
 import io.vertx.ext.apex.RoutingContext;
 import io.vertx.ext.apex.templ.ThymeleafTemplateEngine;
 import io.vertx.ext.mongo.MongoService;
+import javafx.scene.shape.Line;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -71,6 +73,54 @@ public class CartsController extends AbstractController{
                                     context.fail(res3.cause());
                                 }
                             });
+                        } else {
+                            context.fail(res2.cause());
+                        }
+                    });
+                } else {
+                    context.fail(res.cause());
+                }
+            });
+        });
+
+        router.get("/carts/delete").handler(context -> {
+            // get cart
+            getCart(context, res -> {
+                if (res.succeeded()) {
+                    Cart cart = res.result();
+                    // get car items
+                    cart.getLineItems(mongoService, res2 -> {
+                        if (res2.succeeded()) {
+                            List<LineItem> lineItems = res2.result();
+                            if (lineItems.size() > 0) {
+                                // if there are any delete them
+                                ArrayList<LineItem> deletedLineItems = new ArrayList<>(lineItems.size());
+                                lineItems.stream().forEach(li -> {
+                                    li.delete(mongoService, (Void) -> {
+                                        deletedLineItems.add(li);
+                                        if (deletedLineItems.size() == lineItems.size()) {
+                                            // once we're don deleting line items, delete the cart.
+                                            cart.delete(mongoService, res3 -> {
+                                                if (res3.succeeded()) {
+                                                    setNoticeInCookie(context, "Cart successfully emptied.");
+                                                    redirectTo(context, "/store");
+                                                } else {
+                                                    context.fail(res3.cause());
+                                                }
+                                            });
+                                        }
+                                    });
+                                });
+                            } else {
+                                cart.delete(mongoService, res3 -> {
+                                    if (res3.succeeded()) {
+                                        setNoticeInCookie(context, "Cart successfully emptied.");
+                                        redirectTo(context, "/store");
+                                    } else {
+                                        context.fail(res3.cause());
+                                    }
+                                });
+                            }
                         } else {
                             context.fail(res2.cause());
                         }

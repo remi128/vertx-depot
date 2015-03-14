@@ -40,11 +40,12 @@ public class Cart extends BaseModel {
 
 
     public Cart(JsonObject json) {
-        super(json);
+        super("carts", json);
     }
 
     // empty Cart
     public Cart() {
+        super("carts");
     }
 
     // we need this in AbstracController.getCart()
@@ -151,7 +152,7 @@ public class Cart extends BaseModel {
             if (dirty) {
                 setDates(json);
                 // update existing
-                mongoService.replace("carts",
+                mongoService.replace(collection,
                         new JsonObject().put("_id", id),
                         json, (Void) -> {
                             dirty = false;
@@ -162,7 +163,7 @@ public class Cart extends BaseModel {
             }
         } else {
             setDates(json);
-            mongoService.save("carts", json, res -> {
+            mongoService.save(collection, json, res -> {
                 if (res.succeeded()) {
                     this.id = res.result();
                     dirty = false;
@@ -197,6 +198,20 @@ public class Cart extends BaseModel {
                 } else {
                     resultHandler.handle(new ConcreteAsyncResult<>(map));
                 }
+            } else {
+                resultHandler.handle(new ConcreteAsyncResult<>(res.cause()));
+            }
+        });
+        return this;
+    }
+
+    @Override
+    public BaseModel delete(MongoService service, Handler<AsyncResult<Void>> resultHandler) {
+        cache.remove(id);
+        service.remove(collection, new JsonObject().put("_id", id), res -> {
+            if (res.succeeded()) {
+                id = null;
+                resultHandler.handle(new ConcreteAsyncResult<>((Void) null));
             } else {
                 resultHandler.handle(new ConcreteAsyncResult<>(res.cause()));
             }

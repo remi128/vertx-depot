@@ -42,13 +42,14 @@ public class LineItem extends BaseModel {
     private int count;
 
     public LineItem(JsonObject json) {
-        super(json);
+        super("line_items", json);
         cartId = json.getString("cart");
         productId = json.getString("product");
         count = json.getInteger("count", 1);
     }
 
     public LineItem(String cart, String product) {
+        super("line_items");
         cartId = cart;
         productId = product;
         count = 1;
@@ -81,7 +82,7 @@ public class LineItem extends BaseModel {
             // update existing
             if (dirty) {
                 setDates(json);
-                service.replace("line_items",
+                service.replace(collection,
                         new JsonObject().put("_id", id),
                         json, (Void) -> resultHandler.handle(new ConcreteAsyncResult<>(id)));
             } else {
@@ -89,7 +90,7 @@ public class LineItem extends BaseModel {
             }
         } else {
             setDates(json);
-            service.save("line_items", json, resultHandler);
+            service.save(collection, json, resultHandler);
         }
         return this;
     }

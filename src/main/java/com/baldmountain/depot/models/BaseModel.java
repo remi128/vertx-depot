@@ -1,5 +1,8 @@
 package com.baldmountain.depot.models;
 
+import com.baldmountain.depot.ConcreteAsyncResult;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.MongoService;
 
@@ -37,16 +40,19 @@ class BaseModel {
     private static final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
 
     protected boolean dirty = false;
+    protected final String collection;
 
     protected String id;
     protected Date createdOn;
     protected Date updatedOn;
 
-    BaseModel() {
+    BaseModel(String collection) {
+        this.collection = collection;
         createdOn = new Date();
     }
 
-    BaseModel(JsonObject json) {
+    BaseModel(String collection, JsonObject json) {
+        this.collection = collection;
         id = json.getString("_id");
         String s = json.getString("createdOn");
         if (s != null) {
@@ -102,5 +108,16 @@ class BaseModel {
         dirty = true;
     }
 
+    public BaseModel delete(MongoService service, Handler<AsyncResult<Void>> resultHandler) {
+        service.remove(collection, new JsonObject().put("_id", id), res -> {
+            if (res.succeeded()) {
+                id = null;
+                resultHandler.handle(new ConcreteAsyncResult<>((Void)null));
+            } else {
+                resultHandler.handle(new ConcreteAsyncResult<>(res.cause()));
+            }
+        });
+        return this;
+    }
 
 }

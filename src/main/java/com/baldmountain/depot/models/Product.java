@@ -49,7 +49,7 @@ public class Product extends BaseModel {
     private BigDecimal price;
 
     public Product(JsonObject json) {
-        super(json);
+        super("products", json);
         title = json.getString("title");
         description = json.getString("description");
         imageUrl = json.getString("imageUrl");
@@ -61,7 +61,7 @@ public class Product extends BaseModel {
     }
 
     public Product(String title, String description, String imageUrl, BigDecimal price) {
-        this();
+        super("products");
         this.title = title;
         this.description = description;
         this.imageUrl = imageUrl;
@@ -75,6 +75,7 @@ public class Product extends BaseModel {
 
     // empty Product for /products/new
     public Product() {
+        super("products");
         title = "";
         description = "";
         imageUrl = "";
@@ -191,12 +192,5 @@ public class Product extends BaseModel {
                 resultHandler.handle(new ConcreteAsyncResult<>(res.cause()));
             }
         });
-    }
-
-    public Product delete(MongoService service, Handler<AsyncResult<Void>> resultHandler) {
-        service.remove("products", new JsonObject().put("_id", id), resultHandler);
-        // no longer in DB, unless it fails, then...
-        id = null;
-        return this;
     }
 }

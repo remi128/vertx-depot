@@ -30,6 +30,7 @@
                 <td class="total_cell" th:text="'$'+${context.get('totalPrice')}"></td>
             </tr>
         </table>
+        <a href="/carts/delete" class="button" th:text="'Empty cart'">data: { confirm: 'Are you sure?' }</a>
     </div>
 </div>
 <script type="text/javascript">
