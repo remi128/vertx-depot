@@ -78,7 +78,7 @@ public class LineItem extends BaseModel {
                 .put("cart", cartId)
                 .put("product", productId)
                 .put("count", count);
-        if (id != null) {
+        if (!"0".equals(id)) {
             // update existing
             if (dirty) {
                 setDates(json);
@@ -96,6 +96,7 @@ public class LineItem extends BaseModel {
     }
 
     public static void findForCart(MongoService service, String cart, Handler<AsyncResult<List<LineItem>>> resultHandler) {
+        assert !"0".equals(cart);
         JsonObject query = new JsonObject().put("cart", cart);
         service.find("line_items", query, res -> {
             if (res.succeeded()) {

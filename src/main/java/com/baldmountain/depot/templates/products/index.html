@@ -7,7 +7,7 @@
     <link rel="stylesheet" type="text/css" href="/css/scaffolds.css" />
     <link rel="stylesheet" type="text/css" href="/css/products.css" />
     <script type="text/javascript" src="/js/jquery-1.11.2.min.js"></script>
-    <script type="text/javascript" src="/js/jquery.restfulizer.js"></script>
+    <script type="text/javascript" src="/js/jquery.restfulizer.min.js"></script>
 </head>
 <body th:class="products">
 <h1>Listing <span th:text="${context.get('products').size()}"></span> products</h1>
@@ -26,7 +26,7 @@
         <td class="list_actions">
             <a th:href="|/products/show/${product.id}|" th:text="Show"></a><br/>
             <a th:href="|/products/edit/${product.id}|" th:text="Edit"></a><br/>
-            <a th:href="|/products/delete/${product.id}|" th:text="Destroy" data-method="DELETE" class="rest">method: delete, data: { confirm: 'Are you sure?' }</a>
+            <a th:href="|/products/${product.id}|" th:text="Destroy" data-method="DELETE" data-confirm="Are you sure?" class="rest"></a>
         </td>
     </tr>
 </table>
@@ -34,7 +34,7 @@
 <a href="/products/new">New product</a>
 
 <script type="text/javascript">
-    $(".rest").restfulizer();
+    $("a.rest").restfulizer();
 </script>
 </body>
 </html>

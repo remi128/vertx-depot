@@ -51,85 +51,90 @@ public class ProductsController extends AbstractController {
             getProductAndShowNext(context);
         });
 
-        router.post("/products/delete/:productId").handler(context -> {
+        router.post("/products/:productId").handler(context -> {
             String productID = context.request().getParam("productid");
-            Product.find(mongoService, productID, res -> {
-                if (res.succeeded()) {
-                    Product product = res.result();
-                    product.delete(mongoService, res2 -> {
-                        setNoticeInCookie(context, "'" + product.getTitle() + "' was deleted.")
-                                .redirectTo(context, "/products");
+            String method = getRestilizerMethod(context);
+            switch(method) {
+                case "delete":
+                    Product.find(mongoService, productID, res -> {
+                        if (res.succeeded()) {
+                            Product product = res.result();
+                            product.delete(mongoService, res2 -> {
+                                setNoticeInCookie(context, "'" + product.getTitle() + "' was deleted.")
+                                        .redirectTo(context, "/products");
+                            });
+                        } else {
+                            context.fail(res.cause());
+                        }
                     });
-                } else {
-                    context.fail(res.cause());
-                }
-            });
-        });
-
-        router.get("/products/new").handler(context -> {
-            context.put("product", new Product());
-            context.next();
-        });
-
-        router.post("/products/save").handler(context -> {
-            String id = context.request().formAttributes().get("_id");
-            if (id != null && !id.isEmpty()) {
-                Product.find(mongoService, id, res -> {
-                    if (res.succeeded()) {
-                        Product product = res.result();
+                    break;
+                case "put":
+                    if (!"0".equals(productID)) {
+                        Product.find(mongoService, productID, res -> {
+                            if (res.succeeded()) {
+                                Product product = res.result();
+                                try {
+                                    product.update(context.request().formAttributes(), true);
+                                    product.save(mongoService, res2 -> {
+                                        if (res2.succeeded()) {
+                                            Product.all(mongoService, res3 -> {
+                                                if (res3.succeeded()) {
+                                                    setNoticeInCookie(context, "'"+product.getTitle()+"' was successfully saved.")
+                                                            .redirectTo(context, "/products");
+                                                } else {
+                                                    context.fail(res2.cause());
+                                                }
+                                            });
+                                        } else {
+                                            context.fail(res2.cause());
+                                        }
+                                    });
+                                } catch (Exception e) {
+                                    product.update(context.request().formAttributes(), false);
+                                    context.put("product", new Product(context.request().formAttributes(), false));
+                                    context.put("errors", Collections.singletonList(e.getMessage()));
+                                    templateHandler.renderSpecificPath(context, "/edit.html");
+                                }
+                            } else {
+                                context.put("product", new Product(context.request().formAttributes(), false));
+                                context.put("errors", Collections.singletonList(res.cause().getMessage()));
+                                templateHandler.renderSpecificPath(context, "/new.html");
+                            }
+                        });
+                    } else {
                         try {
-                            product.update(context.request().formAttributes(), true);
-                            product.save(mongoService, res2 -> {
-                                if (res2.succeeded()) {
-                                    Product.all(mongoService, res3 -> {
-                                        if (res3.succeeded()) {
-                                            setNoticeInCookie(context, "'"+product.getTitle()+"' was successfully saved.")
+                            Product product = new Product(context.request().formAttributes(), true);
+                            product.save(mongoService, res -> {
+                                if (res.succeeded()) {
+                                    Product.all(mongoService, res2 -> {
+                                        if (res.succeeded()) {
+                                            setNoticeInCookie(context, "'"+product.getTitle()+"' was successfully created.")
                                                     .redirectTo(context, "/products");
                                         } else {
                                             context.fail(res2.cause());
                                         }
                                     });
                                 } else {
-                                    context.fail(res2.cause());
+                                    context.put("product", new Product(context.request().formAttributes(), false));
+                                    context.put("errors", Collections.singletonList(res.cause().getMessage()));
+                                    templateHandler.renderSpecificPath(context, "/new.html");
                                 }
                             });
                         } catch (Exception e) {
-                            product.update(context.request().formAttributes(), false);
                             context.put("product", new Product(context.request().formAttributes(), false));
                             context.put("errors", Collections.singletonList(e.getMessage()));
-                            templateHandler.renderSpecificPath(context, "/edit.html");
-                        }
-                    } else {
-                        context.put("product", new Product(context.request().formAttributes(), false));
-                        context.put("errors", Collections.singletonList(res.cause().getMessage()));
-                        templateHandler.renderSpecificPath(context, "/new.html");
-                    }
-                });
-            } else {
-                try {
-                    Product product = new Product(context.request().formAttributes(), true);
-                    product.save(mongoService, res -> {
-                        if (res.succeeded()) {
-                            Product.all(mongoService, res2 -> {
-                                if (res.succeeded()) {
-                                    setNoticeInCookie(context, "'"+product.getTitle()+"' was successfully created.")
-                                            .redirectTo(context, "/products");
-                                } else {
-                                    context.fail(res2.cause());
-                                }
-                            });
-                        } else {
-                            context.put("product", new Product(context.request().formAttributes(), false));
-                            context.put("errors", Collections.singletonList(res.cause().getMessage()));
                             templateHandler.renderSpecificPath(context, "/new.html");
                         }
-                    });
-                } catch (Exception e) {
-                    context.put("product", new Product(context.request().formAttributes(), false));
-                    context.put("errors", Collections.singletonList(e.getMessage()));
-                    templateHandler.renderSpecificPath(context, "/new.html");
-                }
+                    }
+                    break;
+                default:
+                    context.fail(new IllegalArgumentException("Unknown post method specified."));
             }
+        });
+
+        router.get("/products/new").handler(context -> {
+            context.put("product", new Product());
+            context.next();
         });
 
         router.getWithRegex("/products|/products/|/products/index.html").handler(context -> {

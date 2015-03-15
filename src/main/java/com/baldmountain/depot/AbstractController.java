@@ -123,4 +123,12 @@ public abstract class AbstractController {
         response.end();
         return this;
     }
+
+    protected String getRestilizerMethod(RoutingContext context) {
+        String method = context.request().getParam("_method");
+        if (method != null) {
+            return method.toLowerCase();
+        }
+        return method;
+    }
 }

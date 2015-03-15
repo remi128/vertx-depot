@@ -50,6 +50,7 @@ public class Cart extends BaseModel {
 
     // we need this in AbstracController.getCart()
     public Cart setId(String id) {
+        assert !"0".equals(id);
         this.id = id;
         return this;
     }
@@ -65,6 +66,7 @@ public class Cart extends BaseModel {
             li.incrementCount(1);
             resultHandler.handle(new ConcreteAsyncResult<>(li.getId()));
         } else {
+            assert !"0".equals(id);
             LineItem newLineItem = new LineItem(id, product.getId());
             newLineItem.save(mongoService, res -> {
                 if (res.succeeded()) {
@@ -84,6 +86,7 @@ public class Cart extends BaseModel {
         if (lineItems != null) {
             resultHandler.handle(new ConcreteAsyncResult<>(lineItems));
         } else {
+            assert !"0".equals(id);
             LineItem.findForCart(mongoService, id, res -> {
                 if (res.succeeded()) {
                     lineItems = res.result();
@@ -97,6 +100,7 @@ public class Cart extends BaseModel {
     }
 
     public static void find(MongoService mongoService, String id, Handler<AsyncResult<Cart>> resultHandler) {
+        assert !"0".equals(id);
         Cart cart = cache.get(id);
         if (cart != null) {
             resultHandler.handle(new ConcreteAsyncResult<>(cart));
@@ -111,6 +115,7 @@ public class Cart extends BaseModel {
                     } else {
                         newCart = new Cart(res.result());
                     }
+                    assert !"0".equals(id);
                     cache.put(id, newCart);
                     resultHandler.handle(new ConcreteAsyncResult<>(newCart));
                 } else {
@@ -148,7 +153,7 @@ public class Cart extends BaseModel {
 
     public Cart save(MongoService mongoService, Handler<AsyncResult<String>> resultHandler) {
         JsonObject json = new JsonObject();
-        if (id != null) {
+        if (!"0".equals(id)) {
             if (dirty) {
                 setDates(json);
                 // update existing
@@ -207,10 +212,11 @@ public class Cart extends BaseModel {
 
     @Override
     public BaseModel delete(MongoService service, Handler<AsyncResult<Void>> resultHandler) {
+        assert !"0".equals(id);
         cache.remove(id);
         service.remove(collection, new JsonObject().put("_id", id), res -> {
             if (res.succeeded()) {
-                id = null;
+                id = "0";
                 resultHandler.handle(new ConcreteAsyncResult<>((Void) null));
             } else {
                 resultHandler.handle(new ConcreteAsyncResult<>(res.cause()));

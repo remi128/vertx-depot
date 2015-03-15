@@ -144,7 +144,7 @@ public class Product extends BaseModel {
     }
 
     public Product save(MongoService service, Handler<AsyncResult<String>> resultHandler) {
-        if (id != null) {
+        if (!"0".equals(id)) {
             // update existing
             if (dirty) {
                 JsonObject json = new JsonObject()
@@ -172,6 +172,7 @@ public class Product extends BaseModel {
     }
 
     public static void find(MongoService service, String id, Handler<AsyncResult<Product>> resultHandler) {
+        assert !"0".equals(id);
         JsonObject query = new JsonObject().put("_id", id);
         service.findOne("products", query, null, res -> {
             if (res.succeeded()) {

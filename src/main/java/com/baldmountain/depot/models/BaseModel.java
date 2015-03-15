@@ -42,7 +42,7 @@ class BaseModel {
     protected boolean dirty = false;
     protected final String collection;
 
-    protected String id;
+    protected String id = "0";
     protected Date createdOn;
     protected Date updatedOn;
 
@@ -109,14 +109,18 @@ class BaseModel {
     }
 
     public BaseModel delete(MongoService service, Handler<AsyncResult<Void>> resultHandler) {
-        service.remove(collection, new JsonObject().put("_id", id), res -> {
-            if (res.succeeded()) {
-                id = null;
-                resultHandler.handle(new ConcreteAsyncResult<>((Void)null));
-            } else {
-                resultHandler.handle(new ConcreteAsyncResult<>(res.cause()));
-            }
-        });
+        if ("0".equals(id)) {
+            resultHandler.handle(new ConcreteAsyncResult<>((Void) null));
+        } else {
+            service.remove(collection, new JsonObject().put("_id", id), res -> {
+                if (res.succeeded()) {
+                    id = null;
+                    resultHandler.handle(new ConcreteAsyncResult<>((Void) null));
+                } else {
+                    resultHandler.handle(new ConcreteAsyncResult<>(res.cause()));
+                }
+            });
+        }
         return this;
     }
 

@@ -83,52 +83,57 @@ public class CartsController extends AbstractController{
             });
         });
 
-        router.get("/carts/delete").handler(context -> {
+        router.post("/carts").handler(context -> {
             // get cart
-            getCart(context, res -> {
-                if (res.succeeded()) {
-                    Cart cart = res.result();
-                    // get car items
-                    cart.getLineItems(mongoService, res2 -> {
-                        if (res2.succeeded()) {
-                            List<LineItem> lineItems = res2.result();
-                            if (lineItems.size() > 0) {
-                                // if there are any delete them
-                                ArrayList<LineItem> deletedLineItems = new ArrayList<>(lineItems.size());
-                                lineItems.stream().forEach(li -> {
-                                    li.delete(mongoService, (Void) -> {
-                                        deletedLineItems.add(li);
-                                        if (deletedLineItems.size() == lineItems.size()) {
-                                            // once we're don deleting line items, delete the cart.
-                                            cart.delete(mongoService, res3 -> {
-                                                if (res3.succeeded()) {
-                                                    setNoticeInCookie(context, "Cart successfully emptied.");
-                                                    redirectTo(context, "/store");
-                                                } else {
-                                                    context.fail(res3.cause());
+            String method = getRestilizerMethod(context);
+            switch(method) {
+                case "delete":
+                    getCart(context, res -> {
+                        if (res.succeeded()) {
+                            Cart cart = res.result();
+                            // get car items
+                            cart.getLineItems(mongoService, res2 -> {
+                                if (res2.succeeded()) {
+                                    List<LineItem> lineItems = res2.result();
+                                    if (lineItems.size() > 0) {
+                                        // if there are any delete them
+                                        ArrayList<LineItem> deletedLineItems = new ArrayList<>(lineItems.size());
+                                        lineItems.stream().forEach(li -> {
+                                            li.delete(mongoService, (Void) -> {
+                                                deletedLineItems.add(li);
+                                                if (deletedLineItems.size() == lineItems.size()) {
+                                                    // once we're don deleting line items, delete the cart.
+                                                    cart.delete(mongoService, res3 -> {
+                                                        if (res3.succeeded()) {
+                                                            setNoticeInCookie(context, "Cart successfully emptied.");
+                                                            redirectTo(context, "/store");
+                                                        } else {
+                                                            context.fail(res3.cause());
+                                                        }
+                                                    });
                                                 }
                                             });
-                                        }
-                                    });
-                                });
-                            } else {
-                                cart.delete(mongoService, res3 -> {
-                                    if (res3.succeeded()) {
-                                        setNoticeInCookie(context, "Cart successfully emptied.");
-                                        redirectTo(context, "/store");
+                                        });
                                     } else {
-                                        context.fail(res3.cause());
+                                        cart.delete(mongoService, res3 -> {
+                                            if (res3.succeeded()) {
+                                                setNoticeInCookie(context, "Cart successfully emptied.");
+                                                redirectTo(context, "/store");
+                                            } else {
+                                                context.fail(res3.cause());
+                                            }
+                                        });
                                     }
-                                });
-                            }
+                                } else {
+                                    context.fail(res2.cause());
+                                }
+                            });
                         } else {
-                            context.fail(res2.cause());
+                            context.fail(res.cause());
                         }
                     });
-                } else {
-                    context.fail(res.cause());
-                }
-            });
+                    break;
+            }
         });
 
         router.route("/carts/*").handler(templateHandler);

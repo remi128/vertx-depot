@@ -3,12 +3,10 @@
 <head></head>
 <body>
 <div th:fragment="form">
-    <form action="/products/save" method="post">
+    <form th:action="|/products/*{id}|" method="post">
         <input type="hidden" name="_method" value="PUT" />
-        <input type="hidden" name="_id" th:value="*{id}" />
         <div th:if="${context.get('errors')}" id="error_explanation">
             <h2> errors prohibited this product from being saved:</h2>
-
             <ul>
                 <li th:each="error : ${context.get('errors')}" th:text="${error}"></li>
             </ul>
