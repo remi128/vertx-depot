@@ -36,20 +36,12 @@ import java.util.stream.Collectors;
  * SOFTWARE.
  *
  */
-public class LineItem extends BaseModel {
+public class LineItem {
     private String cartId;
     private String productId;
     private int count;
 
-    public LineItem(JsonObject json) {
-        super("line_items", json);
-        cartId = json.getString("cart");
-        productId = json.getString("product");
-        count = json.getInteger("count", 1);
-    }
-
     public LineItem(String cart, String product) {
-        super("line_items");
         cartId = cart;
         productId = product;
         count = 1;
@@ -69,30 +61,7 @@ public class LineItem extends BaseModel {
 
     public int incrementCount(int num) {
         count += num;
-        dirty = true;
         return count;
-    }
-
-    public LineItem save(MongoService service, Handler<AsyncResult<String>> resultHandler) {
-        JsonObject json = new JsonObject()
-                .put("cart", cartId)
-                .put("product", productId)
-                .put("count", count);
-        if (!"0".equals(id)) {
-            // update existing
-            if (dirty) {
-                setDates(json);
-                service.replace(collection,
-                        new JsonObject().put("_id", id),
-                        json, (Void) -> resultHandler.handle(new ConcreteAsyncResult<>(id)));
-            } else {
-                resultHandler.handle(new ConcreteAsyncResult<>(id));
-            }
-        } else {
-            setDates(json);
-            service.save(collection, json, resultHandler);
-        }
-        return this;
     }
 
     public static void findForCart(MongoService service, String cart, Handler<AsyncResult<List<LineItem>>> resultHandler) {

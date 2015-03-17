@@ -3,6 +3,7 @@ package com.baldmountain.depot;
 import com.baldmountain.depot.models.Cart;
 import com.baldmountain.depot.models.LineItem;
 import com.baldmountain.depot.models.Product;
+import com.j256.ormlite.dao.Dao;
 import io.vertx.ext.apex.Cookie;
 import io.vertx.ext.apex.Router;
 import io.vertx.ext.apex.RoutingContext;
@@ -45,8 +46,9 @@ public class CartsController extends AbstractController{
     private final ThymeleafTemplateEngine engine = ThymeleafTemplateEngine.create().setMode("HTML5");
     private final DepotTemplateHandler templateHandler = new DepotTemplateHandler(engine, "templates/carts", "text/html", "/carts/");
 
-    public CartsController (final Router router, final MongoService mongoService) {
-        super(router, mongoService);
+    public CartsController (final Router router, final Dao<Product, String> productDao,
+                            final Dao<Cart, String> cartDao) {
+        super(router, productDao, cartDao);
     }
 
     public AbstractController setupRoutes() {

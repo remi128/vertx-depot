@@ -1,5 +1,13 @@
 package com.baldmountain.depot;
 
+import com.baldmountain.depot.models.Cart;
+import com.baldmountain.depot.models.LineItem;
+import com.baldmountain.depot.models.Product;
+import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.dao.DaoManager;
+import com.j256.ormlite.jdbc.JdbcConnectionSource;
+import com.j256.ormlite.support.ConnectionSource;
+import com.j256.ormlite.table.TableUtils;
 import io.vertx.codetrans.annotations.CodeTranslate;
 import io.vertx.core.AbstractVerticle;
 //import io.vertx.core.DeploymentOptions;
@@ -14,7 +22,6 @@ import io.vertx.ext.apex.sstore.LocalSessionStore;
 // import io.vertx.ext.auth.AuthService;
 // import io.vertx.ext.auth.shiro.ShiroAuthRealmType;
 // import io.vertx.ext.auth.shiro.ShiroAuthService;
-import io.vertx.ext.mongo.MongoService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,29 +60,28 @@ public class DepotVerticle extends AbstractVerticle {
     }
 
     private static final Logger log = LoggerFactory.getLogger(DepotVerticle.class);
-    private MongoService mongoService;
-    // make sure the Controllers don't get GCed.
+
     private List<AbstractController> controllers = new ArrayList<>();
+    private Dao<Product, String> productDao;
+    private Dao<Cart, String> cartDao;
+    private Dao<LineItem, String> lineItemDao;
 
     @CodeTranslate
     @Override
     public void start() throws Exception {
 
-        JsonObject config = new JsonObject().put("db_name", "depot_development");
-        mongoService = MongoService.create(vertx, config);
-        mongoService.start();
+        String databaseUrl = "jdbc:sqlite:test.db";
+        // create a connection source to our database
+        ConnectionSource connectionSource = new JdbcConnectionSource(databaseUrl);
+        // instantiate the dao
+        productDao = DaoManager.createDao(connectionSource, Product.class);
+        cartDao = DaoManager.createDao(connectionSource, Cart.class);
+        lineItemDao = DaoManager.createDao(connectionSource, LineItem.class);
 
-// Now do stuff with it:
+        TableUtils.createTable(connectionSource, Product.class);    // make sure the Controllers don't get GCed.
+        TableUtils.createTable(connectionSource, Cart.class);    // make sure the Controllers don't get GCed.
+        TableUtils.createTable(connectionSource, LineItem.class);    // make sure the Controllers don't get GCed.
 
-//        mongoService.count("products", new JsonObject(), res -> {
-//
-//            // ...
-//            if (res.succeeded()) {
-//                log.error("win: "+res.result());
-//            } else {
-//                log.error("fail: "+res.cause().getMessage());
-//            }
-//        });
         final Router router = Router.router(vertx);
 
         // We need cookies, sessions and request bodies
@@ -108,10 +114,10 @@ public class DepotVerticle extends AbstractVerticle {
 //                    .setStatusCode(302).end();
 //        });
 
-        controllers.add(new StoreController(router, mongoService).setupRoutes());
-        controllers.add(new ProductsController(router, mongoService).setupRoutes());
-        controllers.add(new LineItemsController(router, mongoService).setupRoutes());
-        controllers.add(new CartsController(router, mongoService).setupRoutes());
+        controllers.add(new StoreController(router, productDao).setupRoutes());
+        controllers.add(new ProductsController(router, productDao).setupRoutes());
+        controllers.add(new LineItemsController(router, productDao).setupRoutes());
+        controllers.add(new CartsController(router, productDao).setupRoutes());
 
         router.route("/").handler(context -> {
             HttpServerResponse response = context.response();

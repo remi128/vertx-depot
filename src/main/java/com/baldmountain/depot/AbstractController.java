@@ -1,7 +1,9 @@
 package com.baldmountain.depot;
 
 import com.baldmountain.depot.models.Cart;
+import com.baldmountain.depot.models.LineItem;
 import com.baldmountain.depot.models.Product;
+import com.j256.ormlite.dao.Dao;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServerResponse;
@@ -9,7 +11,8 @@ import io.vertx.ext.apex.Cookie;
 import io.vertx.ext.apex.Router;
 import io.vertx.ext.apex.RoutingContext;
 import io.vertx.ext.apex.Session;
-import io.vertx.ext.mongo.MongoService;
+
+import java.sql.SQLException;
 
 /**
  * @author Geoffrey Clements
@@ -39,23 +42,24 @@ import io.vertx.ext.mongo.MongoService;
  */
 public abstract class AbstractController {
     protected final Router router;
-    protected final MongoService mongoService;
+    protected final Dao<Product, String> productDao;
+    protected final Dao<Cart, String> cartDao;
 
     protected void getProductAndShowNext(RoutingContext context) {
         String productID = context.request().getParam("productid");
-        Product.find(mongoService, productID, res -> {
-            if (res.succeeded()) {
-                context.put("product", res.result());
-                context.next();
-            } else {
-                context.fail(res.cause());
-            }
-        });
+        try {
+            Product product = productDao.queryForId(productID);
+            context.put("product", product);
+        } catch (SQLException ex) {
+            context.fail(ex);
+        }
     }
 
-    public AbstractController(final Router router, final MongoService mongoService) {
+    public AbstractController(final Router router, final Dao<Product, String> productDao,
+            final Dao<Cart, String> cartDao) {
         this.router = router;
-        this.mongoService = mongoService;
+        this.productDao = productDao;
+        this.cartDao = cartDao;
     }
 
     public abstract AbstractController setupRoutes();
@@ -64,37 +68,21 @@ public abstract class AbstractController {
         Session session = context.session();
         String cartId = session.get("cart");
         if (cartId != null) {
-            // get the existing one
-            Cart.find(mongoService, cartId, res -> {
-                if (res.succeeded()) {
-                    Cart cart = res.result();
-                    // make sure the cart we are loading has it's line items
-                    cart.getLineItems(mongoService, res2 -> {
-                        if (res2.succeeded()) {
-                            requestHandler.handle(new ConcreteAsyncResult<>(cart));
-                        } else {
-                            requestHandler.handle(new ConcreteAsyncResult<>(res2.cause()));
-                        }
-                    });
-                } else {
-                    setNoticeInCookie(context, "Invaid cart");
-
-                }
-            });
+            try {
+                Cart cart = cartDao.queryForId(cartId);
+                requestHandler.handle(new ConcreteAsyncResult<>(cart));
+            } catch (SQLException ex) {
+                requestHandler.handle(new ConcreteAsyncResult<>(ex));
+            }
         } else {
             // make a new cart
             Cart cart = new Cart();
-            cart.save(mongoService, res -> {
-                if (res.succeeded()) {
-                    String newCartId = res.result();
-                    cart.setId(newCartId);
-                    // make sure it goes into the session
-                    session.put("cart", newCartId);
-                    requestHandler.handle(new ConcreteAsyncResult<>(cart));
-                } else {
-                    requestHandler.handle(new ConcreteAsyncResult<>(res.cause()));
-                }
-            });
+            try {
+                cartDao.create(cart);
+                requestHandler.handle(new ConcreteAsyncResult<>(cart));
+            } catch (SQLException ex) {
+                requestHandler.handle(new ConcreteAsyncResult<>(ex));
+            }
         }
         return this;
     }
@@ -129,6 +117,6 @@ public abstract class AbstractController {
         if (method != null) {
             return method.toLowerCase();
         }
-        return method;
+        return null;
     }
 }

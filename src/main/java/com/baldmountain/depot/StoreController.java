@@ -1,9 +1,14 @@
 package com.baldmountain.depot;
 
+import com.baldmountain.depot.models.Cart;
 import com.baldmountain.depot.models.Product;
+import com.j256.ormlite.dao.Dao;
 import io.vertx.ext.apex.Router;
 import io.vertx.ext.apex.templ.ThymeleafTemplateEngine;
 import io.vertx.ext.mongo.MongoService;
+
+import java.sql.SQLException;
+import java.util.List;
 
 /**
  * @author Geoffrey Clements
@@ -35,8 +40,9 @@ public class StoreController extends AbstractController {
     private final ThymeleafTemplateEngine engine = ThymeleafTemplateEngine.create().setMode("HTML5");
     private final DepotTemplateHandler templateHandler = new DepotTemplateHandler(engine, "templates/store", "text/html", "/store/");
 
-    public StoreController(final Router router, final MongoService mongoService) {
-        super(router, mongoService);
+    public StoreController(final Router router, final Dao<Product, String> productDao,
+                           final Dao<Cart, String> cartDao) {
+        super(router, productDao, cartDao);
     }
 
     public AbstractController setupRoutes() {
@@ -45,14 +51,13 @@ public class StoreController extends AbstractController {
         });
 
         router.getWithRegex("/store|/store/|/store/index.html").handler(context -> {
-            Product.all(mongoService, res -> {
-                if (res.succeeded()) {
-                    context.put("products", res.result());
-                    context.next();
-                } else {
-                    context.fail(res.cause());
-                }
-            });
+            try {
+                List<Product> products = productDao.queryForAll();
+                context.put("products", products);
+                context.next();
+            } catch (SQLException ex) {
+                context.fail(ex);
+            }
         });
 
         router.route("/store/*").handler(templateHandler);

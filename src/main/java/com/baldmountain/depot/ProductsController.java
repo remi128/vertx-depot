@@ -1,11 +1,14 @@
 package com.baldmountain.depot;
 
+import com.baldmountain.depot.models.Cart;
 import com.baldmountain.depot.models.Product;
+import com.j256.ormlite.dao.Dao;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.apex.Router;
 import io.vertx.ext.apex.templ.ThymeleafTemplateEngine;
 import io.vertx.ext.mongo.MongoService;
 
+import java.sql.SQLException;
 import java.util.Collections;
 
 /**
@@ -38,8 +41,9 @@ public class ProductsController extends AbstractController {
     private final ThymeleafTemplateEngine engine = ThymeleafTemplateEngine.create().setMode("HTML5");
     private final DepotTemplateHandler templateHandler = new DepotTemplateHandler(engine, "templates/products", "text/html", "/products/");
 
-    public ProductsController (final Router router, final MongoService mongoService) {
-        super(router, mongoService);
+    public ProductsController (final Router router, final Dao<Product, String> productDao,
+                               final Dao<Cart, String> cartDao) {
+        super(router, productDao, cartDao);
     }
 
     public AbstractController setupRoutes() {
@@ -56,17 +60,15 @@ public class ProductsController extends AbstractController {
             String method = getRestilizerMethod(context);
             switch(method) {
                 case "delete":
-                    Product.find(mongoService, productID, res -> {
-                        if (res.succeeded()) {
-                            Product product = res.result();
-                            product.delete(mongoService, res2 -> {
-                                setNoticeInCookie(context, "'" + product.getTitle() + "' was deleted.")
-                                        .redirectTo(context, "/products");
-                            });
-                        } else {
-                            context.fail(res.cause());
-                        }
-                    });
+                    try {
+                        Product product = productDao.queryForId(productID);
+                        String title = product.getTitle();
+                        productDao.delete(product);
+                        setNoticeInCookie(context, "'" + title + "' was deleted.")
+                                .redirectTo(context, "/products");
+                    } catch (SQLException ex) {
+                        context.fail(ex);
+                    }
                     break;
                 case "put":
                     if (!"0".equals(productID)) {
@@ -139,14 +141,13 @@ public class ProductsController extends AbstractController {
 
         router.getWithRegex("/products|/products/|/products/index.html").handler(context -> {
             moveNoticeToContext(context);
-            Product.all(mongoService, res -> {
-                if (res.succeeded()) {
-                    context.put("products", res.result());
-                    context.next();
-                } else {
-                    context.fail(res.cause());
-                }
-            });
+
+            try {
+                context.put("products", productDao.queryForAll());
+                context.next();
+            } catch (SQLException ex) {
+                context.fail(ex);
+            }
         });
 
         router.route("/products/*").handler(templateHandler);
