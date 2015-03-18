@@ -19,5 +19,6 @@ test-tmp
 *.class
 src/gen
 test.db
+depot.db
 vertx-depot.ipr
 vertx-depot.iws
