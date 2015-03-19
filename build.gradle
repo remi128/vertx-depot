@@ -27,13 +27,12 @@ repositories {
 }
 
 dependencies {
-    compile 'io.vertx:vertx-core:3.0.0-SNAPSHOT'
-    compile 'io.vertx:vertx-apex:3.0.0-SNAPSHOT'
-    compile 'io.vertx:vertx-apex:3.0.0-SNAPSHOT'
-    compile 'com.github.jknack:handlebars:1.3.0'
-    compile 'io.vertx:vertx-codetrans:3.0.0-SNAPSHOT'
-    compile 'io.vertx:vertx-mongo-service:3.0.0-SNAPSHOT'
-    compile 'org.thymeleaf:thymeleaf:2.1.4.RELEASE'
+    compile 'io.vertx:vertx-core:3.0.0-milestone3'
+    compile 'io.vertx:vertx-apex:3.0.0-milestone3'
+    compile 'io.vertx:vertx-apex:3.0.0-milestone3'
+    compile 'io.vertx:vertx-codetrans:3.0.0-milestone3'
+    compile 'io.vertx:vertx-mongo-service:3.0.0-milestone3'
+    runtime 'org.thymeleaf:thymeleaf:2.1.4.RELEASE'
 }
 
 shadowJar {
