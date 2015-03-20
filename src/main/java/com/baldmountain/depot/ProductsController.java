@@ -1,9 +1,8 @@
 package com.baldmountain.depot;
 
 import com.baldmountain.depot.models.Product;
-import io.vertx.core.http.HttpServerResponse;
+import com.github.jknack.handlebars.Options;
 import io.vertx.ext.apex.Router;
-import io.vertx.ext.apex.templ.ThymeleafTemplateEngine;
 import io.vertx.ext.mongo.MongoService;
 
 import java.util.Collections;
@@ -35,11 +34,17 @@ import java.util.Collections;
  *
  */
 public class ProductsController extends AbstractController {
-    private final ThymeleafTemplateEngine engine = ThymeleafTemplateEngine.create().setMode("HTML5");
+    private final DepotHandlebarsTemplateEngine engine = DepotHandlebarsTemplateEngine.create();
     private final DepotTemplateHandler templateHandler = new DepotTemplateHandler(engine, "templates/products", "text/html", "/products/");
 
     public ProductsController (final Router router, final MongoService mongoService) {
         super(router, mongoService);
+      engine.getHandlebars().registerHelper("partialDesciption", (String description, Options options) -> {
+        if (description.length() > 80) {
+          return description.substring(0, 80);
+        }
+        return description;
+      });
     }
 
     public AbstractController setupRoutes() {

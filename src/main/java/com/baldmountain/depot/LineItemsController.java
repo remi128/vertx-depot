@@ -2,7 +2,6 @@ package com.baldmountain.depot;
 
 import com.baldmountain.depot.models.Cart;
 import com.baldmountain.depot.models.Product;
-import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.apex.Router;
 import io.vertx.ext.mongo.MongoService;
 

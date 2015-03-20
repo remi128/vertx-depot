@@ -32,7 +32,7 @@ dependencies {
     compile 'io.vertx:vertx-apex:3.0.0-milestone3'
     compile 'io.vertx:vertx-codetrans:3.0.0-milestone3'
     compile 'io.vertx:vertx-mongo-service:3.0.0-milestone3'
-    runtime 'org.thymeleaf:thymeleaf:2.1.4.RELEASE'
+    compile 'com.github.jknack:handlebars:2.0.0'
 }
 
 shadowJar {

@@ -2,7 +2,6 @@ package com.baldmountain.depot;
 
 import com.baldmountain.depot.models.Product;
 import io.vertx.ext.apex.Router;
-import io.vertx.ext.apex.templ.ThymeleafTemplateEngine;
 import io.vertx.ext.mongo.MongoService;
 
 /**
@@ -32,7 +31,7 @@ import io.vertx.ext.mongo.MongoService;
  *
  */
 public class StoreController extends AbstractController {
-    private final ThymeleafTemplateEngine engine = ThymeleafTemplateEngine.create().setMode("HTML5");
+    private final DepotHandlebarsTemplateEngine engine = DepotHandlebarsTemplateEngine.create();
     private final DepotTemplateHandler templateHandler = new DepotTemplateHandler(engine, "templates/store", "text/html", "/store/");
 
     public StoreController(final Router router, final MongoService mongoService) {
