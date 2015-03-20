@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pragprog Books Online Store</title>
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="stylesheet" type="text/css" href="/css/application.css" />
+    <link rel="stylesheet" type="text/css" href="/css/scaffolds.css" />
+    <link rel="stylesheet" type="text/css" href="/css/products.css" />
+    <script type="text/javascript" src="/js/jquery-1.11.2.min.js"></script>
+    <script type="text/javascript" src="/js/jquery.restfulizer.js"></script>
+</head>
+<body class="products">
+{{#notice}}<p id="notice">{{notice}}</p>{{/notice}}
+
+<h1>New product</h1>
+
+{{> templates/products/form.html }}
+
+<a href="/products">Back</a>
+<script type="text/javascript">
+        $(".rest").restfulizer();
+    </script>
+</body>
+</html>

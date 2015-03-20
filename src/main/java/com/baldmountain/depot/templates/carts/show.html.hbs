@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pragprog Books Online Store</title>
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="stylesheet" type="text/css" href="/css/application.css" />
+    <link rel="stylesheet" type="text/css" href="/css/scaffolds.css" />
+    <link rel="stylesheet" type="text/css" href="/css/carts.css" />
+    <script type="text/javascript" src="/js/jquery-1.11.2.min.js"></script>
+    <script type="text/javascript" src="/js/jquery.restfulizer.js"></script>
+</head>
+<body class="carts">
+<div id="banner">
+    <img src="/images/logo.png" />
+    {{#if page_title}}<span>{{page_title}}</span>{{else}}<span>Pragmatic Bookshelf</span>{{/if}}
+</div>
+<div id="columns">
+    <div id="side">{{> templates/side_menu}}</div>
+    <div id="main">
+        {{#notice}}<p id="notice">{{notice}}</p>{{/notice}}
+        <h2>Your Pragmatic Cart</h2>
+        <table>
+            {{#each lineItems}}
+                <tr>
+                    <td>{{count}}x</td>
+                    <td>{{productTitle productId productMap}}</td>
+                    <td class="item_price">${{lineItemTotal count productId productMap}}</td>
+                </tr>
+            {{/each}}
+            <tr class="total_line">
+                <td colspan="2">Total</td>
+                <td class="total_cell">${{totalPrice}}</td>
+            </tr>
+        </table>
+        <a href="/carts" data-method="DELETE" data-confirm="Are you sure?" class="rest"></a>
+    </div>
+</div>
+<script type="text/javascript">
+        $(".rest").restfulizer();
+    </script>
+</body>
+</html>

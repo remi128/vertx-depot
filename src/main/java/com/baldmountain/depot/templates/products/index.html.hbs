@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pragprog Books Online Store</title>
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="stylesheet" type="text/css" href="/css/application.css" />
+    <link rel="stylesheet" type="text/css" href="/css/scaffolds.css" />
+    <link rel="stylesheet" type="text/css" href="/css/products.css" />
+    <script type="text/javascript" src="/js/jquery-1.11.2.min.js"></script>
+    <script type="text/javascript" src="/js/jquery.restfulizer.min.js"></script>
+</head>
+<body class="products">
+<h1>Listing {{products.size}} products</h1>
+{{#notice}}<p id="notice">{{notice}}</p>{{/notice}}
+<table>
+      {{#each products}}
+        <tr th:class="${productStat.odd} ? 'list_line_even' : 'list_line_odd'">
+            <td>
+                {{#imageUrl}}<img src="{{imageUrl}}" th:class="list_image" />{{/imageUrl}}
+            </td>
+            <td class="list_description">
+                <dl>
+                    <dt>{{title}}</dt>
+                    <dd>{{{partialDesciption description}}}</dd>
+                </dl>
+            </td>
+            <td class="list_actions">
+                <a href="/products/show/{{id}}">Show</a><br/>
+                <a href="/products/edit/{{id}}">Edit</a><br/>
+                <a href="/products/{{id}}" data-method="DELETE" data-confirm="Are you sure?" class="rest">Destroy</a>
+            </td>
+        </tr>
+      {{/each}}
+</table>
+<br />
+<a href="/products/new">New product</a>
+
+<script type="text/javascript">
+    $("a.rest").restfulizer();
+</script>
+</body>
+</html>

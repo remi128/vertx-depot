@@ -1,0 +1,36 @@
+<div>
+    <form action="/products/{{product.id}}" method="post">
+        <input type="hidden" name="_method" value="PUT" />
+        {{#errors}}
+            <div id="error_explanation">
+                <h2> errors prohibited this product from being saved:</h2>
+                <ul>
+                    {{#each errors}}
+                        <li>{{toString}}</li>
+                    {{/each}}
+                </ul>
+            </div>
+        {{/errors}}
+
+        <div class="field">
+            <label for="title">Title</label><br />
+            <input type="text" id="title" name="title" value="{{product.title}}" />
+        </div>
+        <div class="field">
+            <label for="description">Description</label><br />
+            <textarea id="description" name="description" rows="6">{{{product.description}}}</textarea>
+        </div>
+        <div class="field">
+            <label for="imageUrl">Image URL</label><br />
+            <input type="text" id="imageUrl" name="imageUrl" value="{{product.imageUrl}}" />
+        </div>
+        <div class="field">
+            <label for="price">Price</label><br />
+            <input type="text" id="price" name="price" value="{{product.price}}" />
+        </div>
+
+        <div class="actions">
+            <input type="submit" />
+        </div>
+    </form>
+</div>
